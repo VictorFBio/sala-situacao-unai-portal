@@ -28,3 +28,5 @@ O publicador reúne este repositório e o painel. A homologação tem endereço 
 ## Reprodução municipal e direitos
 
 O código original deste portal usa MIT. Dados, documentos, marcas, imagens e componentes de terceiros mantêm seus próprios direitos. Os logotipos são obtidos do painel, não sublicenciados aqui. Outro município deve substituir identidade, textos, fontes e contatos, revisar os dados e assumir sua governança. Não há backend, cookies analíticos ou formulário de coleta nesta versão.
+
+A assinatura horizontal UnB em `shared/v1/unb-horizontal.jpg` foi obtida do arquivo oficial `as_bas_cor_jpg/as_bas_cor.jpg` em https://marca.unb.br/marca.php, em 08/10/2026. JPEG original preservado, com escala proporcional e área branca no rodapé. A marca mantém seus direitos próprios e não integra a licença MIT.
