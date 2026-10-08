@@ -9,6 +9,16 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const escape = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const safeUrl = value => { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? escape(url.href) : ''; } catch { return ''; } };
 
+const contributors = [
+  { name: 'João Victor Fernandes Valente Dos Santos', role: 'Residente em Gestão da Atenção Primária à Saúde' },
+  { name: 'Kamilla Quixabeira dos Santos', role: 'Residente em Gestão da Atenção Primária à Saúde' },
+  { name: 'Maria Eduarda Leal de Carvalho Santos', role: 'Residente em Gestão da Atenção Primária à Saúde' },
+  { name: 'Roberta Vitória Azevedo do Amaral', role: 'Residente em Gestão da Vigilância em Saúde' },
+  { name: 'Sabrinna Silva Rego', role: 'Residente em Gestão da Vigilância em Saúde' },
+  { name: 'Maria Clara de Melo Mendes', role: 'Residente em Gestão da Vigilância em Saúde' }
+];
+const creditsMarkup = `<div class="wrap footer-credits"><section aria-labelledby="elaboracao-tecnica"><h2 id="elaboracao-tecnica">Elaboração técnica e autoria</h2><p><strong>${escape(contributors[0].name)}</strong><br>${escape(contributors[0].role)}</p></section><section aria-labelledby="autoria-revisao"><h2 id="autoria-revisao">Autores e revisores de dados</h2><ul>${contributors.map(person=>`<li><strong>${escape(person.name)}</strong> — ${escape(person.role)}</li>`).join('')}</ul></section></div>`;
+
 const modules = [
   { slug: 'painel-de-monitoramento', label: 'Painel de Monitoramento', kind: 'Disponível', text: 'Indicadores, séries históricas e produção assistencial, com fontes, períodos e notas metodológicas.', tag: 'Indicadores de saúde' },
   { slug: 'mapas-de-saude', label: 'Mapas de Saúde', kind: 'Acesso ao mapa atual', text: 'Cartografia municipal e consulta da localização dos serviços. O Busca Saúde já está disponível no painel.', tag: 'Território e localização' },
@@ -27,7 +37,7 @@ function pageTemplate({ title, content, basePath, active = '', environment }) {
 ${environment === 'homologacao' ? '<aside class="preview-banner" aria-label="Ambiente de homologação"><strong>Ambiente de homologação</strong><span>Versão para revisão. O painel publicado permanece no endereço principal.</span></aside>' : ''}
 <header class="header"><div class="wrap brand-row"><a class="brands" href="${href('')}" aria-label="Sala de Situação de Saúde de Unaí — início"><img src="${basePath}_comum/v1/unai.png" alt="Prefeitura de Unaí" width="115" height="44"><span class="brand-divider" aria-hidden="true"></span><img src="${basePath}_comum/v1/sus.png" alt="SUS" width="69" height="44"></a><div class="brand-title"><strong>Sala de Situação de Saúde</strong><span>Secretaria Municipal de Saúde · Unaí, MG</span></div><span class="public-label">Informação pública em saúde</span></div><nav class="wrap nav" aria-label="Navegação do portal">${nav.map(([slug,label]) => `<a href="${href(slug)}" ${slug === active ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav></header>
 <main id="conteudo" tabindex="-1">${content}</main>
-<footer class="footer"><div class="wrap footer-grid"><div><strong>Sala de Situação de Saúde de Unaí</strong><p>Iniciativa técnica da Residência Multiprofissional em Saúde da Família, em cooperação com a Secretaria Municipal de Saúde.</p></div><div><strong>Transparência</strong><a href="${href('dados')}">Fontes e metodologias</a><a href="${href('sobre')}#governanca">Governança e privacidade</a></div><div><strong>Acesso às informações</strong><a href="${href('painel-de-monitoramento')}">Painel de Monitoramento</a><a href="https://www.prefeituraunai.mg.gov.br/" target="_blank" rel="noopener noreferrer">Portal da Prefeitura ↗</a></div></div><div class="wrap footer-bottom">Dados públicos agregados. Consulte a fonte, o período e as condições de uso de cada conjunto.</div></footer></body></html>`;
+<footer class="footer"><div class="wrap footer-grid"><div><strong>Sala de Situação de Saúde de Unaí</strong><p>Iniciativa técnica da Residência Multiprofissional em Saúde da Família, em cooperação com a Secretaria Municipal de Saúde.</p></div><div><strong>Transparência</strong><a href="${href('dados')}">Fontes e metodologias</a><a href="${href('sobre')}#governanca">Governança e privacidade</a></div><div><strong>Acesso às informações</strong><a href="${href('painel-de-monitoramento')}">Painel de Monitoramento</a><a href="https://www.prefeituraunai.mg.gov.br/" target="_blank" rel="noopener noreferrer">Portal da Prefeitura ↗</a></div></div>${creditsMarkup}<div class="wrap footer-bottom">Dados públicos agregados. Consulte a fonte, o período e as condições de uso de cada conjunto.</div></footer></body></html>`;
 }
 
 function sectionHeading(title, intro, eyebrow = 'Sala de Situação de Saúde de Unaí') {

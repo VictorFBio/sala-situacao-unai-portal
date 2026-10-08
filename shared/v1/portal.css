@@ -10,4 +10,10 @@
 .preview-banner{background:var(--subtle);border-bottom-color:var(--border);color:var(--navy)}
 .status.available{color:var(--navy);background:var(--blue-light);border-color:var(--border-strong)}
 .status.planned{color:var(--muted);background:var(--subtle);border-color:var(--border)}
+.footer-credits{display:grid;grid-template-columns:1fr 2fr;gap:36px;margin-top:26px;padding-top:24px;border-top:1px solid #40718f;color:#d3e4ef;font-size:.78rem;line-height:1.6}
+.footer-credits h2{font-size:.83rem;line-height:1.4;letter-spacing:normal;color:inherit;margin:0 0 10px}
+.footer-credits p{font-size:inherit;line-height:inherit;color:inherit;margin:0;max-width:none}
+.footer-credits strong{font-size:inherit;font-weight:600}
+.footer-credits ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+@media(max-width:600px){.footer-credits{grid-template-columns:1fr;gap:22px}}
 @media print{.preview-banner,.nav,.search-label,input,.actions{display:none}.hero{padding:15px 0}.hero-grid,.cards,.sources{display:block}.card,.query,.source-card{break-inside:avoid}.footer{background:white;color:var(--text)}.footer a,.footer p{color:var(--text)}}
