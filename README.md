@@ -15,6 +15,8 @@ No PowerShell, defina `$env:PANEL_SOURCE='../painel'` antes de `npm test`. A ref
 
 ## Manutenção
 
+Regra visual: usar a paleta sóbria do painel (azul institucional, branco e cinzas), superfícies planas e cantos retos. Não usar cores ou efeitos neon, brilho ou sombras decorativas. Estados precisam continuar identificados por texto, e o foco de teclado deve permanecer visível. O raio dos componentes do portal é zero.
+
 Páginas e catálogo: `scripts/build.mjs`. Identidade: `shared/v1/portal.css`. Compatibilidade dos links antigos: `shared/v1/routes.js`. Faça alterações por PR, execute testes e selecione o commit aprovado no `modules.json` do publicador. Nenhuma alteração aqui aciona a produção automaticamente.
 
 As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas encaminha para a consulta territorial existente. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
@@ -26,3 +28,5 @@ O publicador reúne este repositório e o painel. A homologação tem endereço 
 ## Reprodução municipal e direitos
 
 O código original deste portal usa MIT. Dados, documentos, marcas, imagens e componentes de terceiros mantêm seus próprios direitos. Os logotipos são obtidos do painel, não sublicenciados aqui. Outro município deve substituir identidade, textos, fontes e contatos, revisar os dados e assumir sua governança. Não há backend, cookies analíticos ou formulário de coleta nesta versão.
+
+A assinatura horizontal UnB em `shared/v1/unb-horizontal.jpg` foi obtida do arquivo oficial `as_bas_cor_jpg/as_bas_cor.jpg` em https://marca.unb.br/marca.php, em 08/10/2026. JPEG original preservado, com escala proporcional e área branca no rodapé. A marca mantém seus direitos próprios e não integra a licença MIT.
