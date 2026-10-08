@@ -15,6 +15,8 @@ No PowerShell, defina `$env:PANEL_SOURCE='../painel'` antes de `npm test`. A ref
 
 ## Manutenção
 
+Regra visual: usar a paleta sóbria do painel (azul institucional, branco e cinzas), superfícies planas e cantos retos. Não usar cores ou efeitos neon, brilho ou sombras decorativas. Estados precisam continuar identificados por texto, e o foco de teclado deve permanecer visível. O raio dos componentes do portal é zero.
+
 Páginas e catálogo: `scripts/build.mjs`. Identidade: `shared/v1/portal.css`. Compatibilidade dos links antigos: `shared/v1/routes.js`. Faça alterações por PR, execute testes e selecione o commit aprovado no `modules.json` do publicador. Nenhuma alteração aqui aciona a produção automaticamente.
 
 As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas encaminha para a consulta territorial existente. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
