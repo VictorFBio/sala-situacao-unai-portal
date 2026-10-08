@@ -1,11 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, access } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, access, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 const api = await import('../scripts/build.mjs').catch(() => ({}));
 const panelDir = path.resolve(process.env.PANEL_SOURCE || '../painel');
+
+test('recompilação remove arquivos antigos e falha mantém a última saída válida', async () => {
+  const outputDir=await mkdtemp(path.join(os.tmpdir(),'unai-clean-'));
+  try {
+    const options={panelDir,outputDir,revision:'a'.repeat(40)};
+    await api.buildPortal(options);
+    await writeFile(path.join(outputDir,'documento-retirado.pdf'),'não deve sobreviver');
+    await api.buildPortal(options);
+    await assert.rejects(access(path.join(outputDir,'documento-retirado.pdf')));
+    const previous=await readFile(path.join(outputDir,'index.html'));
+    await assert.rejects(api.buildPortal({...options,panelDir:path.join(outputDir,'origem-inexistente')}));
+    assert.deepEqual(await readFile(path.join(outputDir,'index.html')),previous);
+  } finally {await rm(outputDir,{recursive:true,force:true});}
+});
 
 test('portal gera páginas reais, catálogo com procedência e links na base de homologação', async () => {
   assert.equal(typeof api.buildPortal, 'function', 'gerador do portal ainda não implementado');

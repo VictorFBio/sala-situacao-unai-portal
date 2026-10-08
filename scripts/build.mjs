@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile, copyFile, lstat, readdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, lstat, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { normalizeBasePath, legacyDestination } from '../shared/v1/routes.js';
 export { normalizeBasePath, legacyDestination };
 
@@ -34,7 +34,23 @@ function sectionHeading(title, intro, eyebrow = 'Sala de Situação de Saúde de
   return `<div class="wrap page-heading"><p class="eyebrow">${eyebrow}</p><h1>${title}</h1><p class="lead">${intro}</p></div>`;
 }
 
-export async function buildPortal({ panelDir, outputDir, basePath = '/', revision, environment = 'homologacao' }) {
+export async function buildPortal(options) {
+  const output=path.resolve(options.outputDir);
+  if(output===root||output===path.parse(output).root||!path.relative(output,root).startsWith('..')) throw new Error('Saída não pode substituir o código do portal');
+  try {if((await lstat(output)).isSymbolicLink()) throw new Error('Saída simbólica proibida');} catch(error) {if(error.code!=='ENOENT') throw error;}
+  const stage=path.join(path.dirname(output),`.portal-build-${randomUUID()}`);
+  const previous=path.join(path.dirname(output),`.portal-previous-${randomUUID()}`);
+  try {
+    const result=await generatePortal({...options,outputDir:stage});
+    let moved=false;
+    try {await rename(output,previous);moved=true;} catch(error) {if(error.code!=='ENOENT') throw error;}
+    try {await rename(stage,output);} catch(error) {if(moved) await rename(previous,output);throw error;}
+    if(moved) await rm(previous,{recursive:true,force:true});
+    return result;
+  } finally {await rm(stage,{recursive:true,force:true});}
+}
+
+async function generatePortal({ panelDir, outputDir, basePath = '/', revision, environment = 'homologacao' }) {
   basePath = normalizeBasePath(basePath);
   if (!['homologacao', 'producao'].includes(environment)) throw new Error('Ambiente inválido');
   if (!/^[a-f0-9]{40}$/.test(revision || '')) throw new Error('Commit do painel obrigatório');
