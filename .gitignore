@@ -1,0 +1,8 @@
+dist/
+node_modules/
+.sources/
+*.log
+.env*
+dados/entrada/
+dados/processamento/
+dados/restritos/
