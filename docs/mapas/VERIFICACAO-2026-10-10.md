@@ -4,7 +4,7 @@ Versão desenvolvida em `expansao/mapas-piloto`, branch `codex/mapas-tematicos`,
 
 ## Resultado conferido
 
-- Suíte: 16 testes passaram, incluindo a suíte anterior do portal, derivação real com GDAL, integridade de arquivos, catálogo, filtragem, ausências, segurança da renderização, diferentes bases de URL, pacote de publicação e servidor local.
+- Suíte final: 24 testes passaram, incluindo a suíte anterior do portal, derivação real com GDAL, integridade de arquivos, catálogo, filtragem, ausências, segurança da renderização, diferentes bases de URL, pacote de publicação, servidor local e oito regressões da revisão independente.
 - Interface: 26 locais de saúde inicialmente; 32 ao ativar proteção social e segurança. Busca por Alvorada e CAIC retorna um local; busca sem correspondência e todos os grupos desativados retornam zero pontos e lista vazia com mensagem.
 - Seleção pela lista aproxima o ponto e abre a consulta. Seleção pelo símbolo mostra os mesmos dados. Endereço, bairro, qualidade, observações e período permanecem disponíveis; campo sem conteúdo aparece como “Não informado na fonte”.
 - Zoom, roda do mouse, arraste, enquadramentos Município/Sede urbana e camadas territoriais foram exercitados. Foco de teclado visível após navegar do campo de busca para os filtros.
@@ -15,11 +15,11 @@ Versão desenvolvida em `expansao/mapas-piloto`, branch `codex/mapas-tematicos`,
 - Recursos do visualizador vieram de `127.0.0.1`; não há mapas de ruas, CDN, rastreador ou API externa na consulta. Os links de fonte levam aos sites originais somente quando acionados.
 - Console sem erros ou avisos na consulta normal. Falhas 404 no registro correspondem às simulações deliberadas.
 
-As capturas estão em `evidencias/computador-1440.png` e `evidencias/celular-390.png`. `evidencias/requisicoes-locais.jsonl` registra as requisições vistas pelo servidor de prévia, incluindo os testes de falha. Essas evidências não são copiadas para a raiz publicada.
+As capturas finais estão em `evidencias/computador-1440.png` e `evidencias/celular-390.png`. `evidencias/requisicoes-locais.jsonl` e `evidencias/requisicoes-correcao.jsonl` registram as requisições vistas pelo servidor de prévia, incluindo os testes de falha. Essas evidências não são copiadas para a raiz publicada.
 
 ## Integração e custo
 
-O preparador existente de Cloudflare e a verificação de links passaram, sem mudança na política do publicador. O pacote local tem 82 arquivos, aproximadamente 12,63 MB no total e maior arquivo de aproximadamente 2,96 MB, dentro dos limites conferidos pelo preparador existente de 20 mil arquivos e 25 MiB por arquivo.
+O preparador existente de Cloudflare e a verificação de links passaram, sem mudança na política do publicador. O pacote final tem 83 arquivos, aproximadamente 12,65 MB no total e maior arquivo de aproximadamente 2,96 MB, dentro dos limites conferidos pelo preparador existente de 20 mil arquivos e 25 MiB por arquivo.
 
 A prévia reutiliza o painel compilado da revisão `2efce396326978d387a4f527d54e1420aefbfa23`; ela não recompila nem representa todas as alterações posteriores do código do painel. Seus cinco JSON foram comparados com a fonte atual e permaneceram idênticos, incluindo `mapa-servicos.json` de SHA-256 `0a036fe9340ef22099051410a9c33efcff90b8ba231d0f2e351e4ac441fba035`. A futura homologação integrada deverá selecionar as revisões concretas no manifesto.
 
@@ -35,4 +35,10 @@ Leaflet 1.9.4 foi incorporado do pacote oficial, com licença BSD-2-Clause e has
 
 O piloto conserva as referências históricas: endereços de 09/09/2026, limites IBGE 2025 e urbanização IBGE 2019. Não comprova funcionamento atual, cobertura de equipes ou localização de pessoas. Não foram criados indicadores ou temas epidemiológicos sem dados reais. Raster, mapas de calor e animação temporal seguem fora desta versão inicial.
 
-A revisão independente do código será registrada após a análise do conjunto. A prévia funciona enquanto o servidor local estiver em execução; para reabrir, siga `FLUXO-QGIS.md`.
+A revisão independente examinou a versão `f0f9830` e encontrou seis problemas importantes na reutilização e recuperação de falhas, além de um problema de atribuição/textos inicialmente classificado como menor. Este último foi tratado como importante por poder indicar uma fonte incorreta em outro tema. Todos foram corrigidos numa única passagem, com oito testes que falharam antes e passaram depois; a suíte completa encerrou com 24/24.
+
+Após as correções, também foi conferida no navegador uma configuração temporária com cinco arquivos separados: a ausência do arquivo da saúde especializada manteve os **32 registros na lista, 27 no mapa e cinco avisos de representação indisponível**, preservando a contagem documental do grupo. Ao trocar para o tema B com metadados indisponíveis, o cabeçalho e a fonte mantiveram **o período documental do tema B**, sem apresentar o período do tema A. Os arquivos temporários foram removidos da prévia. A consulta normal voltou a 26 locais iniciais, sem erros no console e sem rolagem horizontal em 1440 e 390 px.
+
+As correções incluem validação estrutural das geometrias, unicidade dos códigos em todo o tema, recusa de números fora das classes, preparo completo antes da substituição dos arquivos, conferência das provas de integridade declaradas e fontes/unidade próprias de cada tema. Nenhum achado menor ficou adiado.
+
+A prévia funciona enquanto o servidor local estiver em execução; para reabrir, siga `FLUXO-QGIS.md`.

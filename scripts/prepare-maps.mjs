@@ -1,9 +1,10 @@
-import { readFile, writeFile, mkdir, mkdtemp, rm, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, mkdtemp, rm, rename, lstat, readdir } from 'node:fs/promises';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { validateGeometry } from '../maps/lib/theme-model.mjs';
 
 const execute = promisify(execFile);
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -13,7 +14,15 @@ const contexts = ['municipio', 'urbano', 'municipios', 'estados'];
 export async function prepareMapTheme({ sourceFile, outputDir, ogrPath = process.env.OGR_PATH || 'C:/Program Files/QGIS 3.44.8/bin/ogr2ogr.exe', preparedAt = new Date().toISOString() }) {
   sourceFile = path.resolve(sourceFile);
   outputDir = path.resolve(outputDir);
-  if (sourceFile === outputDir || !Number.isFinite(Date.parse(preparedAt))) throw Error('Destino ou data de preparação inválidos');
+  const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+  const inside = (parent, child) => { const relative = path.relative(parent, child); return !relative || (!relative.startsWith('..') && !path.isAbsolute(relative)); };
+  if (inside(outputDir, sourceFile) || inside(outputDir, projectRoot) || outputDir === path.parse(outputDir).root || !Number.isFinite(Date.parse(preparedAt))) throw Error('Destino ou data de preparação inválidos');
+  try {
+    const info = await lstat(outputDir);
+    if (info.isSymbolicLink() || !info.isDirectory()) throw Error('Destino precisa ser uma pasta regular');
+    const expected = new Set(['locais.geojson', ...contexts.map(name => name + '.geojson'), 'metadata.json', 'provenance.json']);
+    if ((await readdir(outputDir)).some(name => !expected.has(name))) throw Error('Destino contém arquivos que não pertencem à derivação');
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
   const bytes = await readFile(sourceFile);
   const data = JSON.parse(bytes);
   const points = data.queries?.rede_geografica;
@@ -36,13 +45,18 @@ export async function prepareMapTheme({ sourceFile, outputDir, ogrPath = process
     if (geojson?.type !== 'FeatureCollection' || !geojson.features?.length) throw Error(`Geometria ausente: ${name}`);
     collections.push({ name, data: geojson });
   }
-  await mkdir(outputDir, { recursive: true });
-  const stage = await mkdtemp(path.join(outputDir, '.preparo-'));
+  const parent = path.dirname(outputDir);
+  await mkdir(parent, { recursive: true });
+  const stage = await mkdtemp(path.join(parent, '.preparo-'));
+  const previous = path.join(parent, '.preparo-anterior-' + randomUUID());
+  if (path.dirname(stage) !== parent || path.dirname(previous) !== parent || !inside(parent, stage) || !inside(parent, previous)) throw Error('Pasta temporária fora do destino autorizado');
+  const published = path.join(stage, 'published');
+  await mkdir(published);
   try {
     const files = [];
     for (const layer of collections) {
       const input = path.join(stage, `${layer.name}-utm.geojson`);
-      const output = path.join(stage, `${layer.name}.geojson`);
+      const output = path.join(published, `${layer.name}.geojson`);
       await writeFile(input, JSON.stringify(layer.data));
       await execute(ogrPath, ['-f', 'GeoJSON', output, input, '-s_srs', 'EPSG:31983', '-t_srs', 'EPSG:4326', '-lco', 'RFC7946=YES'], {
         windowsHide: true,
@@ -50,7 +64,7 @@ export async function prepareMapTheme({ sourceFile, outputDir, ogrPath = process
       });
       const transformed = JSON.parse(await readFile(output, 'utf8'));
       if (transformed.features.length !== layer.data.features.length || transformed.crs) throw Error('Reprojeção alterou a contagem ou manteve o CRS de origem');
-      await copyFile(output, path.join(outputDir, `${layer.name}.geojson`));
+      for (const feature of transformed.features) validateGeometry(feature.geometry);
       const raw = await readFile(output);
       files.push({ path: `${layer.name}.geojson`, sha256: sha(raw), bytes: raw.length, features: transformed.features.length });
     }
@@ -62,11 +76,15 @@ export async function prepareMapTheme({ sourceFile, outputDir, ogrPath = process
       method: 'Derivação do arquivo público do painel; GDAL/PROJ, de SIRGAS 2000 / UTM 23S para longitude/latitude WGS84; sem nova geocodificação.',
       limitations: [...(points.source?.assumptions || []), ...(context.source?.assumptions || [])]
     };
-    await writeFile(path.join(outputDir, 'metadata.json'), JSON.stringify(metadata, null, 2) + '\n');
-    const metadataBytes = await readFile(path.join(outputDir, 'metadata.json'));
+    await writeFile(path.join(published, 'metadata.json'), JSON.stringify(metadata, null, 2) + '\n');
+    const metadataBytes = await readFile(path.join(published, 'metadata.json'));
     files.push({ path: 'metadata.json', sha256: sha(metadataBytes), bytes: metadataBytes.length });
     if (sha(await readFile(sourceFile)) !== sha(bytes)) throw Error('Origem mudou durante a preparação; rever a derivação');
-    await writeFile(path.join(outputDir, 'provenance.json'), JSON.stringify({ schemaVersion: 1, preparedAt, source: { file: 'mapa-servicos.json', sha256: sha(bytes) }, transformation: { from: 'EPSG:31983', to: 'EPSG:4326', tool: 'GDAL/PROJ' }, counts, files }, null, 2) + '\n');
+    await writeFile(path.join(published, 'provenance.json'), JSON.stringify({ schemaVersion: 1, preparedAt, source: { file: 'mapa-servicos.json', sha256: sha(bytes) }, transformation: { from: 'EPSG:31983', to: 'EPSG:4326', tool: 'GDAL/PROJ' }, counts, files }, null, 2) + '\n');
+    let moved = false;
+    try { await rename(outputDir, previous); moved = true; } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    try { await rename(published, outputDir); } catch (error) { if (moved) await rename(previous, outputDir); throw error; }
+    if (moved) await rm(previous, { recursive: true, force: true });
     return { metadata, files };
   } finally { await rm(stage, { recursive: true, force: true }); }
 }

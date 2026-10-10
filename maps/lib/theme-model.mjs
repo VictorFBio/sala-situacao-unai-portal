@@ -37,6 +37,7 @@ export function validateCatalogue(catalogue) {
       validateLocalPath(layer.path);
       if (!layer.label || !['points', 'context'].includes(layer.kind) || typeof layer.visible !== 'boolean' || !Array.isArray(layer.geometryTypes) || !layer.geometryTypes.length || layer.geometryTypes.some(type => !geometryTypes.has(type))) throw Error('Camada inválida');
       if (layer.kind === 'points') {
+        if (layer.geometryTypes.some(type => type !== 'Point')) throw Error('Camadas de pontos consultáveis exigem geometria Point');
         if (!layer.group || groups.has(layer.group)) throw Error('Grupo ausente ou duplicado');
         groups.add(layer.group);
         if (!Array.isArray(layer.popupFields) || layer.popupFields.some(field => !field.field || !field.label)) throw Error('Campos de consulta inválidos');
@@ -47,11 +48,26 @@ export function validateCatalogue(catalogue) {
   return catalogue;
 }
 
-function validateCoordinates(coordinates) {
-  if (!Array.isArray(coordinates) || !coordinates.length) throw Error('Coordenada inválida');
-  if (typeof coordinates[0] === 'number') {
-    if (coordinates.length < 2 || coordinates.some(value => !Number.isFinite(value)) || Math.abs(coordinates[0]) > 180 || Math.abs(coordinates[1]) > 90) throw Error('Coordenada deve ser longitude/latitude finita');
-  } else coordinates.forEach(validateCoordinates);
+function validatePosition(position) {
+  if (!Array.isArray(position) || position.length < 2 || position.some(value => !Number.isFinite(value)) || Math.abs(position[0]) > 180 || Math.abs(position[1]) > 90) throw Error('Coordenada deve ser longitude/latitude finita');
+}
+
+function sequence(value, minimum, validate) {
+  if (!Array.isArray(value) || value.length < minimum) throw Error('Estrutura de geometria inválida');
+  value.forEach(validate);
+}
+
+export function validateGeometry(geometry) {
+  const line = coordinates => sequence(coordinates, 2, validatePosition);
+  const ring = coordinates => {
+    sequence(coordinates, 4, validatePosition);
+    const first = coordinates[0], last = coordinates.at(-1);
+    if (first.length !== last.length || first.some((value, index) => value !== last[index])) throw Error('Anel de polígono deve estar fechado');
+  };
+  const polygon = coordinates => sequence(coordinates, 1, ring);
+  const validators = { Point: validatePosition, MultiPoint: coordinates => sequence(coordinates, 1, validatePosition), LineString: line, MultiLineString: coordinates => sequence(coordinates, 1, line), Polygon: polygon, MultiPolygon: coordinates => sequence(coordinates, 1, polygon) };
+  if (!validators[geometry?.type]) throw Error('Tipo de geometria inválido');
+  validators[geometry.type](geometry.coordinates);
 }
 
 export function validateLayer(layer, geojson) {
@@ -59,15 +75,32 @@ export function validateLayer(layer, geojson) {
   const codes = new Set();
   for (const feature of geojson.features) {
     if (!layer.geometryTypes.includes(feature.geometry?.type)) throw Error('Tipo de geometria incompatível');
-    validateCoordinates(feature.geometry.coordinates);
+    if (feature.type !== 'Feature' || (feature.properties !== null && (typeof feature.properties !== 'object' || Array.isArray(feature.properties)))) throw Error('Feição inválida');
+    validateGeometry(feature.geometry);
     if (layer.kind === 'points') {
-      if (!feature.properties?.codigo || codes.has(feature.properties.codigo)) throw Error('Identificador de local ausente ou duplicado');
-      codes.add(feature.properties.codigo);
+      if (feature.geometry.type !== 'Point') throw Error('Pontos consultáveis exigem geometria Point');
+      const code = String(feature.properties?.codigo ?? '');
+      if (!code || codes.has(code)) throw Error('Identificador de local ausente ou duplicado');
+      codes.add(code);
       if (layer.allowedGroups && !layer.allowedGroups.includes(feature.properties.grupo)) throw Error('Grupo não configurado no catálogo');
     }
+    if (layer.kind !== 'points' || feature.properties.grupo === layer.group) styleForFeature(feature, layer);
   }
   if (layer.kind === 'points' && geojson.features.length && !geojson.features.some(feature => feature.properties?.grupo === layer.group)) throw Error('Grupo da camada não encontrado nos dados');
   return geojson;
+}
+
+export function collectPointFeatures(theme, datasets) {
+  const files = new Map();
+  for (const layer of theme.layers.filter(layer => layer.kind === 'points' && datasets.has(layer.id))) files.set(layer.path, datasets.get(layer.id));
+  const features = [...files.values()].flatMap(collection => collection.features);
+  const codes = new Set();
+  for (const feature of features) {
+    const code = String(feature.properties.codigo);
+    if (codes.has(code)) throw Error('Identificador de local duplicado entre arquivos do tema');
+    codes.add(code);
+  }
+  return features;
 }
 
 export function filterFeatures(features, { search = '', groups } = {}) {
@@ -83,6 +116,7 @@ export function styleForFeature(feature, layer) {
   if (!style.field) return { ...style };
   const value = feature.properties?.[style.field];
   const entry = Number.isFinite(value) ? style.classes.find(item => value >= item.min && (item.max === null || value < item.max)) : null;
+  if (Number.isFinite(value) && !entry) throw Error('Valor numérico fora das faixas de classificação');
   const result = entry || style.missing;
   return { color: result.color, fillColor: result.color, fillOpacity: 0.65, weight: 1.5, classLabel: result.label };
 }

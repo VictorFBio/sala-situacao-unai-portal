@@ -3,9 +3,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID } from 'node:crypto';
 import { normalizeBasePath, legacyDestination } from '../shared/v1/routes.js';
-import { validateCatalogue, validateLayer } from '../maps/lib/theme-model.mjs';
+import { validateCatalogue, validateLayer, collectPointFeatures } from '../maps/lib/theme-model.mjs';
 import { renderMapsPage } from '../maps/lib/render-page.mjs';
-import { buildMapsAssets } from './build-maps.mjs';
+import { buildMapsAssets, verifyThemeProvenance } from './build-maps.mjs';
 export { normalizeBasePath, legacyDestination };
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -109,14 +109,15 @@ async function generatePortal({ panelDir, outputDir, basePath = '/', revision, e
   const mapsCatalogue = validateCatalogue(JSON.parse(await readFile(path.join(mapsRoot, 'data/catalogue.json'), 'utf8')));
   const themeBundles = {};
   for (const theme of mapsCatalogue.themes) {
+    await verifyThemeProvenance(mapsRoot, theme);
     const metadata = JSON.parse(await readFile(path.join(mapsRoot, theme.metadataPath), 'utf8'));
-    const pointFiles = new Map();
+    const datasets = new Map();
     const allowedGroups = theme.layers.filter(layer => layer.kind === 'points').map(layer => layer.group);
     for (const layer of theme.layers) {
       const geojson = validateLayer({ ...layer, allowedGroups }, JSON.parse(await readFile(path.join(mapsRoot, layer.path), 'utf8')));
-      if (layer.kind === 'points') pointFiles.set(layer.path, geojson);
+      datasets.set(layer.id, geojson);
     }
-    themeBundles[theme.id] = { metadata, points: { type: 'FeatureCollection', features: [...pointFiles.values()].flatMap(data => data.features) } };
+    themeBundles[theme.id] = { metadata, points: { type: 'FeatureCollection', features: collectPointFeatures(theme, datasets) } };
   }
   const publicCatalogue = await buildMapsAssets({ sourceDir: mapsRoot, outputDir: path.join(outputDir, 'mapas-de-saude'), catalogue: mapsCatalogue });
   pages.set('mapas-de-saude', { title: 'Mapas Temáticos', maps: true, content: renderMapsPage({ catalogue: publicCatalogue, basePath, themeBundles }) });
