@@ -1,10 +1,11 @@
-import { mkdir, readFile, writeFile, copyFile, lstat, rename, rm, cp } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, lstat, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID } from 'node:crypto';
 import { normalizeBasePath, legacyDestination } from '../shared/v1/routes.js';
 import { validateCatalogue, validateLayer } from '../maps/lib/theme-model.mjs';
 import { renderMapsPage } from '../maps/lib/render-page.mjs';
+import { buildMapsAssets } from './build-maps.mjs';
 export { normalizeBasePath, legacyDestination };
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -35,7 +36,7 @@ function pageTemplate({ title, content, basePath, active = '', environment, maps
   const href = slug => `${basePath}${slug ? slug + '/' : ''}`;
   const nav = [['', 'Início'], ['painel-de-monitoramento', 'Painel'], ['mapas-de-saude', 'Mapas'], ['rede-de-saude', 'Rede de Saúde'], ['boletins', 'Boletins'], ['dados', 'Dados'], ['analises', 'Análises'], ['sobre', 'Sobre']];
   return `<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Sala de Situação de Saúde de Unaí: dados públicos agregados, indicadores, cartografia e informações sobre os serviços."><meta name="theme-color" content="#08588e">${environment === 'homologacao' ? '<meta name="robots" content="noindex,nofollow">' : ''}<title>${escape(title)} · Sala de Situação de Unaí</title><link rel="icon" href="${basePath}_comum/v1/sus.png"><link rel="stylesheet" href="${basePath}_comum/v1/portal.css?v=${styleVersion}"><script type="module" src="${basePath}_comum/v1/portal.js"></script>${maps ? `<link rel="stylesheet" href="${basePath}mapas-de-saude/vendor/leaflet/leaflet.css"><link rel="stylesheet" href="${basePath}mapas-de-saude/web/maps.css"><script defer src="${basePath}mapas-de-saude/vendor/leaflet/leaflet.js"></script><script type="module" src="${basePath}mapas-de-saude/web/viewer.mjs"></script>` : ''}</head>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Sala de Situação de Saúde de Unaí: dados públicos agregados, indicadores, cartografia e informações sobre os serviços."><meta name="theme-color" content="#08588e">${environment === 'homologacao' ? '<meta name="robots" content="noindex,nofollow">' : ''}<title>${escape(title)} · Sala de Situação de Unaí</title><link rel="icon" href="${basePath}_comum/v1/sus.png"><link rel="stylesheet" href="${basePath}_comum/v1/portal.css?v=${styleVersion}"><script type="module" src="${basePath}_comum/v1/portal.js"></script>${maps ? `<link rel="stylesheet" href="${basePath}mapas-de-saude/vendor/leaflet/leaflet.css"><link rel="stylesheet" href="${basePath}mapas-de-saude/web/maps.css"><script defer src="${basePath}mapas-de-saude/vendor/leaflet/leaflet.js"></script><script type="module" src="${basePath}mapas-de-saude/web/viewer.js"></script>` : ''}</head>
 <body data-base-path="${basePath}"><a class="skip" href="#conteudo">Pular para o conteúdo</a>
 ${environment === 'homologacao' ? '<aside class="preview-banner" aria-label="Ambiente de homologação"><strong>Ambiente de homologação</strong><span>Versão para revisão. O painel publicado permanece no endereço principal.</span></aside>' : ''}
 <header class="header"><div class="wrap brand-row"><a class="brands" href="${href('')}" aria-label="Sala de Situação de Saúde de Unaí — início"><img src="${basePath}_comum/v1/unai.png" alt="Prefeitura de Unaí" width="115" height="44"><span class="brand-divider" aria-hidden="true"></span><img src="${basePath}_comum/v1/sus.png" alt="SUS" width="69" height="44"></a><div class="brand-title"><strong>Sala de Situação de Saúde</strong><span>Secretaria Municipal de Saúde · Unaí, MG</span></div><span class="public-label">Informação pública em saúde</span></div><nav class="wrap nav" aria-label="Navegação do portal">${nav.map(([slug,label]) => `<a href="${href(slug)}" ${slug === active ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav></header>
@@ -117,8 +118,8 @@ async function generatePortal({ panelDir, outputDir, basePath = '/', revision, e
     }
     themeBundles[theme.id] = { metadata, points: { type: 'FeatureCollection', features: [...pointFiles.values()].flatMap(data => data.features) } };
   }
-  for (const folder of ['data', 'lib', 'web', 'vendor']) await cp(path.join(mapsRoot, folder), path.join(outputDir, 'mapas-de-saude', folder), { recursive: true });
-  pages.set('mapas-de-saude', { title: 'Mapas Temáticos', maps: true, content: renderMapsPage({ catalogue: mapsCatalogue, basePath, themeBundles }) });
+  const publicCatalogue = await buildMapsAssets({ sourceDir: mapsRoot, outputDir: path.join(outputDir, 'mapas-de-saude'), catalogue: mapsCatalogue });
+  pages.set('mapas-de-saude', { title: 'Mapas Temáticos', maps: true, content: renderMapsPage({ catalogue: publicCatalogue, basePath, themeBundles }) });
   for (const [slug,p] of pages) {
     const target = path.join(outputDir,slug);
     await mkdir(target,{recursive:true});

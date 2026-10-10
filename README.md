@@ -19,7 +19,17 @@ Regra visual: usar a paleta sóbria do painel (azul institucional, branco e cinz
 
 Páginas e catálogo: `scripts/build.mjs`. Identidade: `shared/v1/portal.css`. Compatibilidade dos links antigos: `shared/v1/routes.js`. Faça alterações por PR, execute testes e selecione o commit aprovado no `modules.json` do publicador. Nenhuma alteração aqui aciona a produção automaticamente.
 
-As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas encaminha para a consulta territorial existente. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
+As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas Temáticos tem página própria e um piloto local da rede de serviços, com Leaflet incluído no pacote, camadas, busca, lista, consultas e fontes. O Busca Saúde existente permanece no painel. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
+
+## Mapas Temáticos e QGIS
+
+Consulte [Do QGIS aos Mapas Temáticos](docs/mapas/FLUXO-QGIS.md) para preparar novos temas, exportar os dados públicos, configurar simbologia, registrar ausências e revisar a prévia. O catálogo está em `maps/data/catalogue.json`; cada tema tem sua pasta de camadas e metadados. Não há CDN, serviço de mapas externo ou dependência npm adicional para o visualizador. Custo adicional: zero.
+
+```powershell
+npm run preview:mapas -- --panel=../painel --legacy=../painel/dist-ecossistema --port=4174
+```
+
+Abra o endereço local exibido no terminal. A saída fica em `.preview/`, fora da fonte e ignorada pelo Git. O preparo confere hashes do painel, links locais e os limites do preparador Cloudflare existente, sem enviar arquivos para a internet. O servidor atende apenas em `127.0.0.1`. Para testes no Windows, crie `.qa-temp/` e aponte `TEMP` e `TMP` para essa pasta, conforme o guia.
 
 ## Publicação e recuperação
 

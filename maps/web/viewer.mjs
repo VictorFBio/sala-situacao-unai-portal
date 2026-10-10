@@ -146,8 +146,8 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         markers.set(String(feature.properties.codigo), marker);
       }
       list.innerHTML = renderLocalList(currentFeatures, theme, true);
-      count.textContent = `${currentFeatures.length} locais nos filtros`;
-      listCount.textContent = `${currentFeatures.length} resultados`;
+      count.textContent = `${currentFeatures.length} ${currentFeatures.length === 1 ? "local" : "locais"} nos filtros`;
+      listCount.textContent = `${currentFeatures.length} ${currentFeatures.length === 1 ? "resultado" : "resultados"}`;
       if (selected && markers.has(selected)) showSelected(selected, false);
       else if (selected) { selected = null; root.querySelector('[data-map-selection]').textContent = 'O local selecionado está fora dos filtros atuais. Escolha outro local na lista ou no mapa.'; }
       setStatus();

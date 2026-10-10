@@ -25,11 +25,11 @@ test('página própria inclui camadas locais, lista acessível, metadados e down
       assert.match(html, /data-local-id="A01"/);
       assert.match(html, /download/);
       assert.ok(html.includes(`${basePath}mapas-de-saude/vendor/leaflet/leaflet.js`));
-      assert.ok(html.includes(`${basePath}mapas-de-saude/web/viewer.mjs`));
-      assert.ok(html.includes(`${basePath}mapas-de-saude/data/rede-servicos/locais.geojson`));
+      assert.ok(html.includes(`${basePath}mapas-de-saude/web/viewer.js`));
+      assert.ok(html.includes(`${basePath}mapas-de-saude/data/rede-servicos/locais.json`));
       const resources = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(match => match[1]);
       assert.ok(!resources.some(url => /unpkg|jsdelivr|tile\.openstreetmap|mapbox/i.test(url)));
-      for (const file of ['web/viewer.mjs', 'web/maps.css', 'lib/theme-model.mjs', 'data/catalogue.json', 'data/rede-servicos/locais.geojson', 'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/leaflet/LICENSE', 'vendor/leaflet/version.json']) await access(path.join(outputDir, 'mapas-de-saude', file));
+      for (const file of ['web/viewer.js', 'web/maps.css', 'lib/theme-model.js', 'data/catalogue.json', 'data/rede-servicos/locais.json', 'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/leaflet/license.json', 'vendor/leaflet/version.json']) await access(path.join(outputDir, 'mapas-de-saude', file));
       const home = await readFile(path.join(outputDir, 'index.html'), 'utf8');
       assert.match(home, /Mapas Temáticos/);
       assert.doesNotMatch(home, /leaflet\.js/);
