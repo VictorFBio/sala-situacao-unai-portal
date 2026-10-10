@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "themes": [
+    {
+      "id": "rede-servicos",
+      "title": "Rede de saúde e serviços de referência",
+      "description": "Consulte os locais públicos mapeados em Unaí, seus endereços e as referências territoriais.",
+      "status": "piloto-local",
+      "metadataPath": "data/rede-servicos/metadata.json",
+      "layers": [
+        { "id": "municipio", "label": "Limite municipal · IBGE 2025", "path": "data/rede-servicos/municipio.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": true, "style": { "color": "#08588e", "fillColor": "#edf3f7", "fillOpacity": 0.4, "weight": 1.8 } },
+        { "id": "urbano", "label": "Área urbanizada · IBGE 2019", "path": "data/rede-servicos/urbano.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": true, "style": { "color": "#7c91a3", "fillColor": "#b9c9d7", "fillOpacity": 0.45, "weight": 0.7 } },
+        { "id": "municipios", "label": "Municípios do entorno · IBGE 2025", "path": "data/rede-servicos/municipios.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": false, "style": { "color": "#a8b3bf", "fillColor": "#f2f4f6", "fillOpacity": 0.15, "weight": 0.8 } },
+        { "id": "estados", "label": "Contexto estadual · IBGE 2025", "path": "data/rede-servicos/estados.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": false, "style": { "color": "#687787", "fillOpacity": 0, "weight": 1.5 } },
+        { "id": "ubs-esf", "label": "UBS e Saúde da Família", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "UBS / ESF", "visible": true, "style": { "color": "#08588e", "symbol": "circle" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
+        { "id": "especializada", "label": "Saúde especializada e gestão", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Saúde especializada e gestão", "visible": true, "style": { "color": "#137c70", "symbol": "square" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
+        { "id": "urgencia", "label": "Urgência e emergência", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Urgência e emergência", "visible": true, "style": { "color": "#b8493e", "symbol": "cross" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
+        { "id": "protecao-social", "label": "Proteção social", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Proteção social", "visible": false, "style": { "color": "#966426", "symbol": "diamond" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
+        { "id": "seguranca", "label": "Segurança pública", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Segurança pública", "visible": false, "style": { "color": "#636b83", "symbol": "triangle" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] }
+      ]
+    }
+  ]
+}

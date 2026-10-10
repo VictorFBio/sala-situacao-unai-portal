@@ -1,0 +1,2 @@
+maps/data/** text eol=lf
+maps/vendor/** -text
