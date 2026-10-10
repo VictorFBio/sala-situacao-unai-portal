@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "id": "rede-servicos",
+  "title": "Rede de saúde e serviços de referência",
+  "preparedAt": "2026-10-10T22:40:47.793Z",
+  "sourceCrs": "EPSG:31983",
+  "publicationCrs": "EPSG:4326",
+  "source": {
+    "label": "Acervo cartográfico da rede municipal de serviços de Unaí",
+    "executedAt": "2026-10-04T19:03:01.874239-03:00",
+    "period": "Endereços consultados em 09/09/2026",
+    "links": [
+      {
+        "label": "Prefeitura de Unaí · endereços dos serviços",
+        "href": "https://www.prefeituraunai.mg.gov.br/pmu2/index.php/secretarias/governo/a-secretaria-governo/73-enderecos-e-telefones.html"
+      }
+    ],
+    "filters": [
+      "Unaí (MG); locais públicos do Projeto 4; sem pacientes, profissionais ou telefones."
+    ],
+    "assumptions": [
+      "Locais públicos, não pessoas nem equipes únicas. Coordenadas geocodificadas, aproximadas e sem validação operacional. Não representa cobertura, funcionamento atual ou distribuição de casos.",
+      "23 registros de ESF na referência documental agrupados em 18 locais; não confundir locais com equipes."
+    ],
+    "evidenceFlow": [
+      {
+        "title": "Origem preservada",
+        "detail": "Projeto 4 / rede_saude_unai.gpkg. Endereços públicos e geocodificação ArcGIS/Photon-OSM; fonte documental consultada em 09/09/2026, não renovada nesta derivação."
+      },
+      {
+        "title": "Derivação para tela",
+        "detail": "OGR: leitura somente leitura, ST_IsValid conferido, seleção de atributos públicos, coordenadas em metros / EPSG:31983. Sem reprojeção de pontos ou deslocamento de marcadores."
+      },
+      {
+        "title": "Provas",
+        "detail": "rede_saude_unai.gpkg: 3d0f4c5f52e791339684f0c572f9df3537c7c1b00367384850342573c8622d2b; UNAI-SAU-004__limite_municipal_unai.gpkg: 8cf9e773b2e1321fab03c33b7a2007e29b338d13893c24f83f76e6b7682bcfea; UNAI-SAU-004__area_urbanizada_ibge2019.gpkg: 780faabbeb645a0b66568d493cdd29a2d67e8f25ad856af20550c2d02623d577"
+      }
+    ],
+    "metricDefinitions": [
+      {
+        "label": "Unidade",
+        "definition": "Local público mapeado; não equipe, atendimento ou paciente."
+      }
+    ]
+  },
+  "contextSource": {
+    "label": "IBGE · limites municipais e estaduais, área urbanizada",
+    "executedAt": "2026-10-04T19:03:01.874239-03:00",
+    "period": "Malhas municipais e estaduais 2025 · área urbanizada 2019",
+    "links": [
+      {
+        "label": "IBGE · Malhas territoriais",
+        "href": "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/estrutura-territorial/15774-malhas.html"
+      },
+      {
+        "label": "IBGE · áreas urbanizadas",
+        "href": "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/tipologias-do-territorio/15789-areas-urbanizadas.html"
+      }
+    ],
+    "filters": [
+      "Unaí (MG); locais públicos do Projeto 4; sem pacientes, profissionais ou telefones."
+    ],
+    "assumptions": [
+      "Malhas oficiais de 2025. Municípios de MG, GO e DF no recorte regional; limites estaduais MG, GO e DF. Geometrias transformadas para EPSG:31983 e simplificadas apenas para visualização. Área urbanizada de 2019 é referência estatística, não perímetro urbano legal atual. Limite 2025 é independente das medidas do Censo 2022.",
+      "Os rótulos de bairro decorrem dos campos bairro nos endereços públicos dos serviços; não há polígonos oficiais de bairros nesta camada."
+    ],
+    "evidenceFlow": [
+      {
+        "title": "Origem preservada",
+        "detail": "Projeto 4 / rede_saude_unai.gpkg. Endereços públicos e geocodificação ArcGIS/Photon-OSM; fonte documental consultada em 09/09/2026, não renovada nesta derivação."
+      },
+      {
+        "title": "Derivação para tela",
+        "detail": "OGR: leitura somente leitura, ST_IsValid conferido, seleção de atributos públicos, coordenadas em metros / EPSG:31983. Sem reprojeção de pontos ou deslocamento de marcadores."
+      },
+      {
+        "title": "Provas",
+        "detail": "rede_saude_unai.gpkg: 3d0f4c5f52e791339684f0c572f9df3537c7c1b00367384850342573c8622d2b; UNAI-SAU-004__limite_municipal_unai.gpkg: 8cf9e773b2e1321fab03c33b7a2007e29b338d13893c24f83f76e6b7682bcfea; UNAI-SAU-004__area_urbanizada_ibge2019.gpkg: 780faabbeb645a0b66568d493cdd29a2d67e8f25ad856af20550c2d02623d577"
+      },
+      {
+        "title": "Contexto regional IBGE",
+        "detail": "Malhas 2025 locais; 36 municípios no recorte MG/GO/DF e 3 limites estaduais. Arquivos-fonte e SHA-256 registrados em qa_origem.json."
+      }
+    ],
+    "metricDefinitions": [
+      {
+        "label": "Unidade",
+        "definition": "Polígonos de referência; SIRGAS 2000 / UTM 23S. Simplificação para tela: 35 m no limite municipal, 8 m na área urbanizada, 180 m nos municípios e 250 m nos estados."
+      }
+    ]
+  },
+  "counts": {
+    "UBS / ESF": 18,
+    "Saúde especializada e gestão": 5,
+    "Urgência e emergência": 3,
+    "Segurança pública": 2,
+    "Proteção social": 4
+  },
+  "unit": "Local público mapeado; não equivale a equipe, paciente ou área de cobertura.",
+  "method": "Derivação do arquivo público do painel; GDAL/PROJ, de SIRGAS 2000 / UTM 23S para longitude/latitude WGS84; sem nova geocodificação.",
+  "limitations": [
+    "Locais públicos, não pessoas nem equipes únicas. Coordenadas geocodificadas, aproximadas e sem validação operacional. Não representa cobertura, funcionamento atual ou distribuição de casos.",
+    "23 registros de ESF na referência documental agrupados em 18 locais; não confundir locais com equipes.",
+    "Malhas oficiais de 2025. Municípios de MG, GO e DF no recorte regional; limites estaduais MG, GO e DF. Geometrias transformadas para EPSG:31983 e simplificadas apenas para visualização. Área urbanizada de 2019 é referência estatística, não perímetro urbano legal atual. Limite 2025 é independente das medidas do Censo 2022.",
+    "Os rótulos de bairro decorrem dos campos bairro nos endereços públicos dos serviços; não há polígonos oficiais de bairros nesta camada."
+  ]
+}

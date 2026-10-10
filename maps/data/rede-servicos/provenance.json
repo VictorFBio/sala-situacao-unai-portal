@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-10-10T22:40:47.793Z",
+  "source": {
+    "file": "mapa-servicos.json",
+    "sha256": "0a036fe9340ef22099051410a9c33efcff90b8ba231d0f2e351e4ac441fba035"
+  },
+  "transformation": {
+    "from": "EPSG:31983",
+    "to": "EPSG:4326",
+    "tool": "GDAL/PROJ"
+  },
+  "counts": {
+    "UBS / ESF": 18,
+    "Saúde especializada e gestão": 5,
+    "Urgência e emergência": 3,
+    "Segurança pública": 2,
+    "Proteção social": 4
+  },
+  "files": [
+    {
+      "path": "locais.geojson",
+      "sha256": "643bf976a0fd59b29ee9d9d87af4379e2cd63b7b56ab659d01bbb3c374bcb23e",
+      "bytes": 13264,
+      "features": 32
+    },
+    {
+      "path": "municipio.geojson",
+      "sha256": "176f570b98113da87330aafea909305f0ef888df8eb10c636e15dfd793a9a76a",
+      "bytes": 73061,
+      "features": 1
+    },
+    {
+      "path": "urbano.geojson",
+      "sha256": "f768925c5e8af463ae4b49a7f67561fafb3f2c7a8cc1c0bdc04a81a018592c7b",
+      "bytes": 28916,
+      "features": 50
+    },
+    {
+      "path": "municipios.geojson",
+      "sha256": "4816b4961bdeea3aceee390f15469e96e3a8deb6c2294e5ce3fa904c7835e501",
+      "bytes": 11489,
+      "features": 36
+    },
+    {
+      "path": "estados.geojson",
+      "sha256": "715751353b07b43172137555cd9095ee14f25b5bc4581c05cbdd5aea5fccb277",
+      "bytes": 1005,
+      "features": 3
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "eec64e41bdab0ed5b4ba6f7539a7f6b54bb84f14c92973bfef46743ccd03619d",
+      "bytes": 6102
+    }
+  ]
+}
