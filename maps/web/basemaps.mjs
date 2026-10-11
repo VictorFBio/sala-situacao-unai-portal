@@ -8,7 +8,7 @@ export function installBasemaps({L,map,root,config,onChange}){
  // Oldest below newest; transparent scene edges reveal the overlapping scene.
  const imagery=config.scenes.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(scene=>L.tileLayer(imageryTileUrl(scene),{pane:'imageryBase',minZoom:5,maxNativeZoom:16,maxZoom:19,bounds:[[scene.bbox[1],scene.bbox[0]],[scene.bbox[3],scene.bbox[2]]],attribution,updateWhenIdle:true,keepBuffer:0,detectRetina:false}));
  const streets=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxNativeZoom:19,maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',updateWhenIdle:true,keepBuffer:0});
- let current='plain',warning='';
+ let current='plain',warning='',revision=0;
  const batches=new Map([...imagery,streets].map(layer=>[layer,{loaded:0,failed:0}]));
  const dates=[...new Set(config.scenes.map(s=>s.date.slice(0,10)))].sort().map(d=>d.split('-').reverse().join('/'));
  function explain(){
@@ -19,7 +19,7 @@ export function installBasemaps({L,map,root,config,onChange}){
  function changeBase(id){
   if(!['satellite','streets','plain'].includes(id))return;
   for(const layer of [...imagery,streets])if(map.hasLayer(layer))map.removeLayer(layer);
-  current=id;warning='';
+  current=id;warning='';revision++;
   for(const layer of batches.keys())batches.set(layer,{loaded:0,failed:0});
   if(id==='satellite')for(const layer of imagery)layer.addTo(map);
   if(id==='streets')streets.addTo(map);
@@ -41,7 +41,14 @@ export function installBasemaps({L,map,root,config,onChange}){
    if(active.some(item=>item.isLoading()))return;
    const loaded=active.reduce((total,item)=>total+batches.get(item).loaded,0);
    const failed=active.reduce((total,item)=>total+batches.get(item).failed,0);
-   if(failed&&!loaded){const missing=current==='satellite'?'satélite':'ruas';changeBase('plain');warning=`O fundo de ${missing} está indisponível. A cartografia simples foi ativada; pontos, polígonos e consulta permanecem disponíveis. Você pode tentar novamente pelo botão do fundo.`;}
+   if(failed&&!loaded){
+    const before=revision,missing=current==='satellite'?'satélite':'ruas';
+    // Leaflet reads this._map after emitting load; remove layers after that stack finishes.
+    queueMicrotask(()=>{
+     if(before!==revision||!map.hasLayer(layer))return;
+     changeBase('plain');warning=`O fundo de ${missing} está indisponível. A cartografia simples foi ativada; pontos, polígonos e consulta permanecem disponíveis. Você pode tentar novamente pelo botão do fundo.`;explain();
+    });
+   }
    else if(!failed)warning='';
    explain();
   });

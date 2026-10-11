@@ -47,22 +47,27 @@ test('falha do fundo ativo preserva vetores; erro tardio de fundo desativado é 
  layers.at(-1).emit('loading');layers.at(-1).emit('tileerror');
  assert.match(status.textContent,/trechos/);
  layers.at(-1).emit('load');
+ assert.equal(canvas.dataset.basemap,'streets'); // Leaflet still reads the layer's map after firing load.
+ await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'plain');
  assert.match(status.textContent,/indisponível/);
  control.changeBase('satellite');
  for(const layer of layers.slice(0,3))layer.emit('loading');
  layers[0].emit('tileload');layers[1].emit('tileerror');
  for(const layer of layers.slice(0,3))layer.emit('load');
+ await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'satellite');
  assert.match(status.textContent,/trechos/);
  // A later view can fail completely even after earlier tiles loaded successfully.
  for(const layer of layers.slice(0,3))layer.emit('loading');
  for(const layer of layers.slice(0,3))layer.emit('tileerror');
  for(const layer of layers.slice(0,3))layer.emit('load');
+ await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'plain');
  control.changeBase('satellite');layers[1].emit('loading');layers[1].emit('tileload');layers[1].emit('load');
  center={lng:-46.3,lat:-16.8}; // Only the eastern scene covers this later view.
  layers[0].emit('loading');layers[0].emit('tileerror');layers[0].emit('load');
+ await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'plain');
 });
 test('agrupamento reduz sobreposição sem modificar feições e se desfaz na aproximação',()=>{
