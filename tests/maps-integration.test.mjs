@@ -5,7 +5,8 @@ import path from 'node:path';
 import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { buildPortal } from '../scripts/build.mjs';
-import { validateBuildOutput } from '../../painel/scripts/publication-policy.mjs';
+import { pathToFileURL } from 'node:url';
+const { validateBuildOutput } = await import(pathToFileURL(path.resolve(process.env.PANEL_SOURCE || '../painel', 'scripts/publication-policy.mjs')).href);
 const preview = await import('../scripts/preview-maps.mjs').catch(() => ({}));
 
 test('pacote de mapas respeita o publicador existente e preserva os dados GeoJSON', async () => {
