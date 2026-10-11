@@ -3,11 +3,10 @@ import { installBasemaps } from './basemaps.mjs';
 import { validateCatalogue, filterFeatures, styleForFeature } from '../lib/theme-model.mjs';
 import { renderThemeContent, renderLocalList, symbolSvg, mapAttribution } from '../lib/render-page.mjs';
 import { loadThemeData } from '../lib/load-theme.mjs';
+import { createResourceLoader } from '../lib/resource-loader.mjs';
 
 async function fetchJson(url, signal) {
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw Error('Recurso indisponível');
-  return response.json();
+  return createResourceLoader({ signal }).read(url);
 }
 
 function consultation(feature, layer, metadata) {
@@ -41,22 +40,27 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
   validateCatalogue(catalogue);
   const mapsBase = `${basePath}mapas-de-saude/`;
   const controller = new AbortController();
+  const resources = createResourceLoader({ signal: controller.signal });
   const selector = root.querySelector('[data-map-theme]');
   const fallbacks = JSON.parse(root.querySelector('[data-map-fallbacks]')?.textContent || '{}');
   let map;
+  let themeController;
   let generation = 0;
 
   async function loadTheme(id) {
     const thisGeneration = ++generation;
     const theme = catalogue.themes.find(item => item.id === id);
     if (!theme) return;
+    themeController?.abort();
+    themeController = new AbortController();
+    const themeSignal = themeController.signal;
     if (map) { map.remove(); map = null; }
     const fallback = fallbacks[theme.id] || {};
     root.querySelector('[data-theme-content]').innerHTML = renderThemeContent({ theme, bundle: fallback, mapsBase });
     const initialStatus = root.querySelector('[data-map-status]');
     initialStatus.textContent = 'Carregando as camadas do mapa…';
     let loaded;
-    try { loaded = await loadThemeData({ theme, fallback, read: file => fetchJson(mapsBase + file, controller.signal) }); }
+    try { loaded = await loadThemeData({ theme, fallback, read: file => resources.read(mapsBase + file) }); }
     catch { if (thisGeneration === generation) { initialStatus.dataset.state = 'error'; initialStatus.textContent = 'As fontes deste mapa não puderam ser carregadas. Consulte a documentação deste tema abaixo.'; } return; }
     if (controller.signal.aborted || thisGeneration !== generation) return;
     const { metadata, datasets, errors, mapFeatures: allFeatures, documentFeatures } = loaded;
@@ -176,11 +180,11 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         const drawn = contexts.get(input.dataset.mapLayer);
         if (drawn) { if (input.checked) drawn.addTo(map); else map.removeLayer(drawn); }
         else updatePoints();
-      }, { signal: controller.signal });
+      }, { signal: themeSignal });
     }
     search.disabled = !documentFeatures.length;
-    search.addEventListener('input', updatePoints, { signal: controller.signal });
-    list.addEventListener('click', event => { const button = event.target.closest('[data-select-local]'); if (button) showSelected(button.dataset.selectLocal); }, { signal: controller.signal });
+    search.addEventListener('input', updatePoints, { signal: themeSignal });
+    list.addEventListener('click', event => { const button = event.target.closest('[data-select-local]'); if (button) showSelected(button.dataset.selectLocal); }, { signal: themeSignal });
     for (const button of root.querySelectorAll('[data-map-view]')) {
       button.disabled = false;
       button.addEventListener('click', () => {
@@ -190,17 +194,31 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         const bounds = button.dataset.mapView === 'urbano' && urbanBounds?.isValid() ? urbanBounds : extent;
         if (bounds?.isValid()) map.fitBounds(bounds, { padding: [25, 25], animate: false });
         for (const view of root.querySelectorAll('[data-map-view]')) view.setAttribute('aria-pressed', String(view === button));
-      }, { signal: controller.signal });
+      }, { signal: themeSignal });
     }
     map.on('zoomend', updatePoints);
     updatePoints();
     if(theme.initialView==='urbano')root.querySelector('[data-map-view="urbano"]')?.click();
     const expand=root.querySelector('[data-map-expand]');
-    expand?.addEventListener('click',()=>{const expanded=root.querySelector('.maps-workspace').classList.toggle('is-expanded');expand.setAttribute('aria-pressed',String(expanded));expand.textContent=expanded?'Reduzir mapa':'Ampliar mapa';map.invalidateSize();},{signal:controller.signal});
-    root.querySelector('.maps-workspace').addEventListener('keydown',event=>{if(event.key==='Escape'&&root.querySelector('.maps-workspace')?.classList.contains('is-expanded')){expand?.click();expand?.focus();}},{signal:controller.signal});
+    expand?.addEventListener('click',()=>{const expanded=root.querySelector('.maps-workspace').classList.toggle('is-expanded');expand.setAttribute('aria-pressed',String(expanded));expand.textContent=expanded?'Reduzir mapa':'Ampliar mapa';map.invalidateSize();},{signal:themeSignal});
+    root.querySelector('.maps-workspace').addEventListener('keydown',event=>{if(event.key==='Escape'&&root.querySelector('.maps-workspace')?.classList.contains('is-expanded')){expand?.click();expand?.focus();}},{signal:themeSignal});
+    const filters = root.querySelector('[data-map-filters]');
+    const filterPanel = root.querySelector('[data-map-filter-panel]');
+    if (filters && filterPanel) {
+      const compact = window.matchMedia('(max-width: 650px)');
+      let opened = false;
+      const syncFilters = () => {
+        filterPanel.hidden = compact.matches && !opened;
+        filters.setAttribute('aria-expanded', String(!filterPanel.hidden));
+        map.invalidateSize();
+      };
+      filters.addEventListener('click', () => { opened = !opened; syncFilters(); }, { signal: themeSignal });
+      compact.addEventListener('change', syncFilters, { signal: themeSignal });
+      syncFilters();
+    }
     if(theme.basemapsPath){
       try {
-        const config=await fetchJson(mapsBase+theme.basemapsPath,controller.signal);
+        const config=await resources.read(mapsBase+theme.basemapsPath);
         if(controller.signal.aborted||thisGeneration!==generation)return;
         installBasemaps({L,map,root,config,onChange:id=>{currentBase=id;for(const [layerId,drawn] of contexts){const layer=theme.layers.find(l=>l.id===layerId);drawn.setStyle(feature=>contextStyle(feature,layer));}}});
       } catch { if(thisGeneration===generation){const note=root.querySelector('[data-base-status]');note.dataset.state='error';note.textContent='O fundo externo está indisponível. A cartografia, os locais e suas fontes permanecem disponíveis.';} }
@@ -214,7 +232,7 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
     status.dataset.state = 'error'; status.textContent = 'Não foi possível abrir este mapa. A lista e as fontes permanecem disponíveis.';
   }), { signal: controller.signal });
   await loadTheme(selector.value);
-  return { destroy() { generation++; controller.abort(); map?.remove(); } };
+  return { destroy() { generation++; themeController?.abort(); controller.abort(); map?.remove(); } };
 }
 
 const root = document.querySelector('[data-maps-root]');

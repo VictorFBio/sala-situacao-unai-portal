@@ -23,7 +23,9 @@ As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas Temát
 
 ## Mapas Temáticos e QGIS
 
-Consulte [Do QGIS aos Mapas Temáticos](docs/mapas/FLUXO-QGIS.md) para preparar novos temas, exportar os dados públicos, configurar simbologia, registrar ausências e revisar a prévia. O catálogo está em `maps/data/catalogue.json`; cada tema tem sua pasta de camadas e metadados. Não há CDN, serviço de mapas externo ou dependência npm adicional para o visualizador. Custo adicional: zero.
+Consulte [Do QGIS aos Mapas Temáticos](docs/mapas/FLUXO-QGIS.md) para preparar novos temas, exportar os dados públicos, configurar simbologia, registrar ausências e revisar a prévia. O catálogo está em `maps/data/catalogue.json`; cada tema tem sua pasta de camadas e metadados. Leaflet e vetores são locais, sem dependência npm adicional. Os fundos opcionais usam serviços externos gratuitos, com procedência e atribuição; a cartografia e os locais permanecem disponíveis se o fundo falhar. Custo adicional: zero.
+
+No celular, abra “Filtros e camadas” para pesquisar ou combinar referências. Os pedidos JSON têm prazo máximo de 15 segundos, compartilham operações em andamento e reutilizam leituras concluídas no mesmo visualizador. Falhas permitem nova tentativa; trocar temas remove seus controles e observadores, preservando o cache de dados públicos.
 
 ```powershell
 npm run preview:mapas -- --panel=../painel --legacy=../painel/dist-ecossistema --port=4174
@@ -33,7 +35,7 @@ Abra o endereço local exibido no terminal. A saída fica em `.preview/`, fora d
 
 ## Publicação e recuperação
 
-O publicador reúne este repositório e o painel. A homologação tem endereço separado, aviso visível e `noindex`. A ativação no domínio principal ocorrerá somente após aprovação da versão concreta e após a avaliação de 15/10/2026. Para recuperar uma versão, retorne a referência do portal no manifesto e gere novamente o pacote; consulte o procedimento central no repositório do painel.
+O publicador reúne este repositório e o painel. A homologação tem endereço separado, aviso visível e `noindex`. O piloto já foi ativado no domínio principal com autorização do titular. Atualizações devem passar por testes, homologação e autorização de publicação. Para recuperar uma versão, retorne a referência do portal no manifesto e gere novamente o pacote; consulte o procedimento central no repositório do painel.
 
 ## Reprodução municipal e direitos
 
