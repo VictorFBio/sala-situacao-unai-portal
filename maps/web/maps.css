@@ -90,3 +90,21 @@
 .maps-page :focus-visible { outline:3px solid #a85714; outline-offset:3px; }
 @media(max-width:900px) { .maps-workspace { grid-template-columns:220px minmax(0,1fr); } .map-canvas { height:480px; } .map-intro .map-unit-note { display:none; } .maps-results { gap:20px; } }
 @media(max-width:650px) { .maps-catalogue { flex-direction:column; align-items:stretch; gap:12px; } .maps-catalogue select { min-width:0; font-size:14px; } .map-intro { margin-top:22px; } .map-intro h2 { font-size:21px; } .maps-workspace { display:flex; flex-direction:column; } .maps-controls { border-right:0; border-bottom:1px solid #ccd8e2; padding:16px; } .maps-controls fieldset { margin-top:16px; } .map-layer-choice { padding:8px 0; font-size:13px; } .context-controls { margin-top:14px; } .context-controls:not([open]) { margin-bottom:0; } .map-canvas { height:400px; } .map-toolbar { padding:12px; align-items:start; flex-wrap:wrap; gap:10px; } .maps-results,.maps-provenance { grid-template-columns:1fr; gap:24px; } .map-selection { padding:20px; } .results-heading { flex-wrap:wrap; gap:5px; } .local-list { max-height:430px; } .map-legend { gap:8px 12px; } .maps-provenance { margin-top:30px; padding-top:24px; } }
+
+.map-base-toolbar { display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:12px 16px;border-bottom:1px solid #d9e1e8; }
+.map-base-toolbar>span { font-size:12px;font-weight:650;margin-right:6px; }
+.map-base-toolbar button { font:inherit;font-size:12px;border:1px solid #afbfcc;padding:8px 10px;cursor:pointer;color:#18344a;background:#fff; }
+.map-base-toolbar button[aria-pressed=true] { background:#08588e;color:#fff;border-color:#08588e; }
+.map-base-toolbar button[data-map-expand] { margin-left:auto; }
+.map-base-status { margin:0;padding:9px 16px;background:#f8fafc;color:#4a6072;font-size:11px;line-height:1.5; }
+.map-base-status[data-state=error] { color:#943728;background:#fff4ef; }
+.map-symbol-pin { background:#fff;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 6px #142f4f99;display:flex;align-items:center;justify-content:center; }
+.map-symbol-pin svg { width:23px;height:23px; }
+.map-symbol-pin.is-selected { outline:3px solid #f3ca55;outline-offset:3px;box-shadow:0 1px 10px #142f4fbb; }
+.map-cluster { border:3px solid #fff;border-radius:50%;background:#08588e;color:white;box-shadow:0 1px 6px #10283b88;display:flex;align-items:center;justify-content:center;font:700 13px sans-serif; }
+.map-cluster.is-selected { outline:3px solid #f3ca55;outline-offset:3px; }
+.maps-workspace.is-expanded { position:fixed;inset:12px;z-index:10000;box-shadow:0 0 0 20px #12293ccc;overflow:auto; }
+.maps-workspace.is-expanded .map-main { display:flex;flex-direction:column; }
+.maps-workspace.is-expanded .map-canvas { flex:1;min-height:350px; }
+.map-canvas .leaflet-control-attribution { max-width:100%;white-space:normal;line-height:1.4;overflow-wrap:anywhere; }
+@media(max-width:650px){.map-base-toolbar { padding:10px;gap:5px; }.map-base-toolbar>span { width:100%; }.map-base-toolbar button { font-size:11px; }.maps-workspace.is-expanded { inset:0; }.maps-workspace.is-expanded .maps-controls { display:none; }.maps-workspace.is-expanded .map-main { height:100%; }.map-base-status { padding:8px 12px; }}

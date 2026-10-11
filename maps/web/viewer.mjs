@@ -1,3 +1,5 @@
+import { clusterFeatures, urbanExtent } from '../lib/basemap-model.mjs';
+import { installBasemaps } from './basemaps.mjs';
 import { validateCatalogue, filterFeatures, styleForFeature } from '../lib/theme-model.mjs';
 import { renderThemeContent, renderLocalList, symbolSvg, mapAttribution } from '../lib/render-page.mjs';
 import { loadThemeData } from '../lib/load-theme.mjs';
@@ -62,12 +64,14 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
     if (!L) { initialStatus.dataset.state = 'error'; initialStatus.textContent = 'A visualização do mapa está indisponível. Consulte os locais, endereços e fontes na lista abaixo.'; return; }
     root.querySelector('[data-theme-content]').innerHTML = renderThemeContent({ theme, bundle: { metadata, points: { features: documentFeatures } }, mapsBase });
     const canvas = root.querySelector('[data-map-canvas]');
-    map = L.map(canvas, { minZoom: 5, maxZoom: 20, zoomControl: true, attributionControl: true });
+    map = L.map(canvas, { minZoom: 5, maxZoom: 19, zoomControl: true, attributionControl: true });
     map.attributionControl.addAttribution(mapAttribution(metadata));
     L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
     const contextPane = map.createPane('mapContext');
     contextPane.style.zIndex = '300';
     const contexts = new Map();
+    let currentBase = 'plain';
+    const contextStyle = (feature, layer) => { const style=styleForFeature(feature,layer); return currentBase==='plain'||layer.style?.field ? style : {...style,fillOpacity:0.025,color:currentBase==='satellite' ? (layer.id==='urbano'?'#ffdf8a':'#ffffff') : style.color,weight:layer.id==='municipio'?2:0.9}; };
     const pointLayers = theme.layers.filter(layer => layer.kind === 'points');
     const markerGroup = L.layerGroup().addTo(map);
     const markers = new Map();
@@ -84,7 +88,7 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
     for (const layer of theme.layers.filter(item => item.kind === 'context' && datasets.has(item.id))) {
       try {
       const drawn = L.geoJSON(datasets.get(layer.id), {
-        pane: 'mapContext', style: feature => styleForFeature(feature, layer),
+        pane: 'mapContext', style: feature => contextStyle(feature, layer),
         onEachFeature: (feature, item) => {
           const name = feature.properties?.NM_MUN || feature.properties?.NM_UF || feature.properties?.nome;
           if (name) item.bindTooltip(document.createTextNode(String(name)));
@@ -117,11 +121,11 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
       const marker = markers.get(String(code));
       if (!feature || !marker) return;
       selected = String(code);
-      for (const [id, item] of markers) item.getElement()?.classList.toggle('is-selected', id === selected);
+      for (const item of new Set(markers.values())) item.getElement()?.classList.toggle('is-selected', item === marker);
       for (const row of list.querySelectorAll('[data-local-id]')) row.classList.toggle('is-selected', row.dataset.localId === selected);
       const layer = pointLayers.find(item => item.group === feature.properties.grupo);
       root.querySelector('[data-map-selection]').replaceChildren(consultation(feature, layer, metadata));
-      if (move) map.setView(marker.getLatLng(), Math.max(map.getZoom(), 15), { animate: false });
+      if (move) map.setView([feature.geometry.coordinates[1],feature.geometry.coordinates[0]], Math.max(map.getZoom(), 16), { animate: false });
       marker.openPopup();
     }
 
@@ -131,12 +135,22 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
       const listedFeatures = filterFeatures(documentFeatures, { search: search.value, groups });
       markerGroup.clearLayers();
       markers.clear();
-      for (const feature of currentFeatures) {
+      for (const group of clusterFeatures(currentFeatures,feature=>map.project([feature.geometry.coordinates[1],feature.geometry.coordinates[0]],map.getZoom()),map.getZoom())) {
+        if(group.length>1){
+          const bounds=L.latLngBounds(group.map(f=>[f.geometry.coordinates[1],f.geometry.coordinates[0]]));
+          const cluster=L.marker(bounds.getCenter(),{icon:L.divIcon({className:'map-cluster',html:`<span>${group.length}</span>`,iconSize:[36,36],iconAnchor:[18,18]}),title:`${group.length} locais próximos. Clique para aproximar.`,alt:`${group.length} locais próximos`,keyboard:true});
+          cluster.on('click',()=>map.fitBounds(bounds.pad(0.3),{maxZoom:17,padding:[50,50],animate:false}));
+          cluster.bindTooltip(`${group.length} locais · aproximar`);
+          cluster.addTo(markerGroup);
+          for(const feature of group)markers.set(String(feature.properties.codigo),cluster);
+          continue;
+        }
+        const feature=group[0];
         const layer = pointLayers.find(item => item.group === feature.properties.grupo);
         try {
         const style = styleForFeature(feature, layer);
         const marker = L.marker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {
-          icon: L.divIcon({ className: 'map-symbol', html: symbolSvg({ ...layer.style, color: style.color }), iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12] }),
+          icon: L.divIcon({ className: 'map-symbol map-symbol-pin', html: symbolSvg({ ...layer.style, color: style.color }), iconSize: [30, 30], iconAnchor: [15, 15], popupAnchor: [0, -18] }),
           title: feature.properties.nome, alt: feature.properties.nome, keyboard: true
         });
         marker.bindTooltip(document.createTextNode(String(feature.properties.nome)));
@@ -171,13 +185,27 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
       button.disabled = false;
       button.addEventListener('click', () => {
         const urbanPoints = allFeatures.filter(feature => feature.properties.rural === false);
-        const urbanBounds = urbanPoints.length ? L.latLngBounds(urbanPoints.map(feature => [feature.geometry.coordinates[1], feature.geometry.coordinates[0]])).pad(0.15) : contexts.get('urbano')?.getBounds();
+        const mainUrban = urbanExtent(datasets.get('urbano'));
+        const urbanBounds = mainUrban ? L.latLngBounds([[mainUrban[1],mainUrban[0]],[mainUrban[3],mainUrban[2]]]).pad(0.1) : urbanPoints.length ? L.latLngBounds(urbanPoints.map(feature => [feature.geometry.coordinates[1], feature.geometry.coordinates[0]])).pad(0.15) : contexts.get('urbano')?.getBounds();
         const bounds = button.dataset.mapView === 'urbano' && urbanBounds?.isValid() ? urbanBounds : extent;
         if (bounds?.isValid()) map.fitBounds(bounds, { padding: [25, 25], animate: false });
         for (const view of root.querySelectorAll('[data-map-view]')) view.setAttribute('aria-pressed', String(view === button));
       }, { signal: controller.signal });
     }
+    map.on('zoomend', updatePoints);
     updatePoints();
+    if(theme.initialView==='urbano')root.querySelector('[data-map-view="urbano"]')?.click();
+    const expand=root.querySelector('[data-map-expand]');
+    expand?.addEventListener('click',()=>{const expanded=root.querySelector('.maps-workspace').classList.toggle('is-expanded');expand.setAttribute('aria-pressed',String(expanded));expand.textContent=expanded?'Reduzir mapa':'Ampliar mapa';map.invalidateSize();},{signal:controller.signal});
+    root.querySelector('.maps-workspace').addEventListener('keydown',event=>{if(event.key==='Escape'&&root.querySelector('.maps-workspace')?.classList.contains('is-expanded')){expand?.click();expand?.focus();}},{signal:controller.signal});
+    if(theme.basemapsPath){
+      try {
+        const config=await fetchJson(mapsBase+theme.basemapsPath,controller.signal);
+        if(controller.signal.aborted||thisGeneration!==generation)return;
+        installBasemaps({L,map,root,config,onChange:id=>{currentBase=id;for(const [layerId,drawn] of contexts){const layer=theme.layers.find(l=>l.id===layerId);drawn.setStyle(feature=>contextStyle(feature,layer));}}});
+      } catch { if(thisGeneration===generation){const note=root.querySelector('[data-base-status]');note.dataset.state='error';note.textContent='O fundo externo está indisponível. A cartografia, os locais e suas fontes permanecem disponíveis.';} }
+    }
+    if(controller.signal.aborted||thisGeneration!==generation)return;
     map.invalidateSize();
   }
 

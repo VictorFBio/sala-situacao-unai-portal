@@ -4,7 +4,13 @@
 
 O QGIS continua sendo o ambiente de criação no computador: preparar dados, conferir geometria, fazer junções e escolher as classes do mapa. O portal recebe uma cópia pública das camadas em GeoJSON, acompanhada de configurações e metadados. O Leaflet, incluído no próprio pacote, oferece zoom, navegação, consulta e controle das camadas.
 
-Esta versão usa arquivos locais e a hospedagem estática já existente. Não exige assinatura, chave de API, servidor geográfico ou instalação de um serviço. As referências territoriais também são vetoriais locais; não há contratação de imagens de satélite nem carregamento de mapas de ruas externos. A simbologia é registrada no catálogo do portal: a aparência de um projeto QGIS não é transferida automaticamente.
+Esta versão usa camadas públicas locais e a hospedagem já existente. O fundo é independente dessas camadas: imagens históricas CBERS-4A/WPM do INPE, carregadas por blocos conforme a navegação, ruas do OpenStreetMap ou cartografia simples. Não exige assinatura, chave de API ou servidor geográfico. A simbologia é registrada no catálogo do portal: a aparência de um projeto QGIS não é transferida automaticamente.
+
+O piloto usa três cenas CBERS-4A de 03 e 29/09/2026, com cor RGB fusionada e resolução de 2 m (pancromática de 2 m e multiespectral de 8 m). As cenas e suas coberturas estão em `maps/data/basemaps.json`, com origem, data e licença CC BY 4.0. A ampliação acima do zoom nativo 16 amplia pixels, sem criar detalhe. A cobertura das cenas não equivale à cobertura completa de todo o município e pode conter bordas sem imagem. Os 32 locais ficam dentro das coberturas selecionadas.
+
+Fontes: [sensor CBERS-4A — INPE](https://data.inpe.br/dados/cbers-4a/), [catálogo STAC](https://data.inpe.br/bdc/stac/v1/collections/CB4A-WPM-PCA-FUSED-1), [manual do serviço de imagens](https://data.inpe.br/big/web/wp-content/uploads/2024/05/CatalogoIntegrado_ComoUsar.v0.1-2.pdf) e [política de uso dos blocos OpenStreetMap](https://operations.osmfoundation.org/policies/tiles/).
+
+Os fornecedores externos recebem as solicitações dos blocos visíveis e metadados técnicos de acesso. As camadas locais e dados de saúde não são enviados ao serviço de imagens. Não há download em massa, cache offline nem garantia de disponibilidade. Falha completa do fundo ativa a cartografia simples; falhas parciais mantêm os blocos disponíveis com aviso. Pontos, polígonos e lista permanecem consultáveis.
 
 ## 1. Preparar e revisar no QGIS
 
@@ -46,7 +52,9 @@ Para pontos, use `kind: "points"`, um `group` que corresponda ao atributo `grupo
 
 Uma cor fixa usa `color`, `fillColor`, `fillOpacity` e `weight`. Para classificação numérica, `style.field` identifica um campo **numérico**, `style.classes` registra faixas com `min`, `max`, `color` e `label`, e `style.missing` registra a cor e o rótulo da ausência. As faixas incluem o mínimo e excluem o máximo; `max: null` só é permitido na última faixa. Não pode haver sobreposição. Valores ausentes ou não numéricos recebem a classe de ausência. Um valor numérico fora das faixas **impede a publicação** e gera aviso de camada inválida no visualizador: ele não vira “Sem informação”. Cubra todo o domínio numérico válido, inclusive valores negativos quando pertinentes. Defina limites com base na metodologia do novo tema, sem reutilizar automaticamente os limites de outro indicador.
 
-A plataforma inicial é vetorial. Imagens raster, animação temporal e mapas de calor precisarão de uma implementação posterior, associada a dados e finalidade definidos. Não há temas epidemiológicos fictícios neste piloto.
+Para habilitar os fundos neste tema, use `basemapsPath: "data/basemaps.json"`. O preparo valida a configuração e a origem oficial antes de publicar. `initialView: "urbano"` abre na área principal, identificada pelo maior polígono urbanizado do IBGE. O enquadramento municipal e a lista continuam permitindo consultar os locais fora dessa vista. Pontos próximos são agrupados até o zoom 16; a aproximação ou a seleção na lista mostra cada local. Use “Ampliar mapa” para consultar em uma área maior e Esc para sair.
+
+O fundo de satélite já está implementado. Outros rasters temáticos, animação temporal e mapas de calor exigem dados e finalidade definidos. Não há temas epidemiológicos fictícios neste piloto.
 
 ## 5. Conferir a versão local
 
@@ -69,6 +77,6 @@ No pacote gerado, GeoJSON recebe a extensão `.json` para respeitar o publicador
 
 ## 6. Publicar após a revisão
 
-Alterar um arquivo no computador não atualiza o domínio. Depois da revisão, selecione o commit do portal no `modules.json` do publicador, gere a homologação pelo fluxo existente e confira o pacote concreto antes da ativação externa. A aprovação deste piloto autorizou desenvolvimento e teste local. Não foi feita publicação externa.
+Alterar um arquivo no computador não atualiza o domínio. Depois da revisão, selecione o commit do portal no `modules.json` do publicador, gere a homologação pelo fluxo existente e confira o pacote concreto antes da ativação externa. O piloto foi publicado após autorização; a atualização dos fundos usa o mesmo fluxo de homologação e verificação.
 
 Os locais do piloto têm endereços de referência consultados em 09/09/2026, limites IBGE 2025 e área urbanizada IBGE 2019. Coordenadas aproximadas não comprovam funcionamento atual, cobertura de equipe ou delimitação legal do perímetro urbano. Os 23 registros documentais de ESF foram agrupados em 18 locais: locais não equivalem a equipes.

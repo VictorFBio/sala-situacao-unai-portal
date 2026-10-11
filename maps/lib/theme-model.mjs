@@ -27,6 +27,8 @@ export function validateCatalogue(catalogue) {
   for (const theme of catalogue.themes) {
     if (!idPattern.test(theme.id || '') || themeIds.has(theme.id)) throw Error('Identificador de tema inválido ou duplicado');
     themeIds.add(theme.id);
+    if (theme.basemapsPath) validateLocalPath(theme.basemapsPath);
+    if (theme.initialView && !['urbano','municipio'].includes(theme.initialView)) throw Error('Enquadramento inválido');
     if (!theme.title || !theme.description || !['piloto-local', 'disponivel'].includes(theme.status) || !theme.layers?.length) throw Error('Tema incompleto');
     validateLocalPath(theme.metadataPath);
     const layerIds = new Set();

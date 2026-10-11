@@ -2,6 +2,7 @@ import { readFile, writeFile, copyFile, readdir, mkdir } from 'node:fs/promises'
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { validateLocalPath } from '../maps/lib/theme-model.mjs';
+import { validateBasemaps } from '../maps/lib/basemap-model.mjs';
 
 const publicName = name => name.replace(/\.geojson$/, '.json').replace(/\.mjs$/, '.js').replace(/\.map$/, '.map.json');
 
@@ -24,6 +25,10 @@ export async function verifyThemeProvenance(sourceDir, theme) {
 }
 
 export async function buildMapsAssets({ sourceDir, outputDir, catalogue }) {
+  for(const theme of catalogue.themes)if(theme.basemapsPath){
+    validateLocalPath(theme.basemapsPath);
+    validateBasemaps(JSON.parse(await readFile(path.join(sourceDir,theme.basemapsPath),'utf8')));
+  }
   const published = structuredClone(catalogue);
   for (const theme of published.themes) for (const layer of theme.layers) layer.path = publicName(layer.path);
   async function copyArea(area, relative = '') {
