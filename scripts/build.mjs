@@ -25,7 +25,7 @@ const creditsMarkup = `<div class="wrap footer-credits"><section aria-labelledby
 
 const modules = [
   { slug: 'painel-de-monitoramento', label: 'Painel de Monitoramento', kind: 'Disponível', text: 'Indicadores, séries históricas e produção assistencial, com fontes, períodos e notas metodológicas.', tag: 'Indicadores de saúde' },
-  { slug: 'mapas-de-saude', label: 'Mapas Temáticos', kind: 'Piloto local', text: 'Mapas interativos, camadas territoriais e consulta de locais públicos, com fonte e período de referência.', tag: 'Território e localização' },
+  { slug: 'mapas-de-saude', label: 'Mapas Temáticos', kind: 'Piloto', text: 'Mapas interativos, camadas territoriais e consulta de locais públicos, com fonte e período de referência.', tag: 'Território e localização' },
   { slug: 'rede-de-saude', label: 'Rede de Saúde', kind: 'Em preparação', text: 'Um diretório de estabelecimentos, equipes e serviços, ampliado a partir de informações públicas revisadas.', tag: 'Serviços e atendimento' },
   { slug: 'boletins', label: 'Boletins e Relatórios', kind: 'Em preparação', text: 'Boletins epidemiológicos, informes e documentos técnicos, com identificação da versão e do período.', tag: 'Publicações' },
   { slug: 'dados', label: 'Catálogo de Dados', kind: 'Disponível', text: 'Conheça as fontes, os arquivos presentes e as limitações das informações utilizadas no painel.', tag: 'Fontes e metodologia' },
