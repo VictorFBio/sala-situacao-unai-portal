@@ -16,6 +16,41 @@ test('base INPE usa imagens de 2 m rastreáveis, sem chave, com cobertura dos 32
   const modified=structuredClone(config);modified.scenes[0].asset=bad;assert.throws(()=>api.validateBasemaps(modified));
  }
 });
+test('cenas de satélite cobrem o limite municipal inteiro e a área interna do nordeste',async()=>{
+ const config=JSON.parse(await readFile(new URL('../maps/data/basemaps.json',import.meta.url)));
+ const municipality=JSON.parse(await readFile(new URL('../maps/data/rede-servicos/municipio.geojson',import.meta.url)));
+ const scene=config.scenes.find(item=>item.id==='CBERS4A_WPM_PCA_RGB321_20260903_204_133');
+ assert.ok(scene,'a cena CBERS-4A da órbita 204/133 está configurada');
+ assert.equal(scene.asset,'https://data.inpe.br/bdc/data/CB4A-WPM-PCA-FUSED/v001/204/133/2026/9/CBERS4A_WPM_PCA_RGB321_20260903_204_133.tif');
+ assert.equal(scene.sourceMetadata,'https://data.inpe.br/bdc/stac/v1/collections/CB4A-WPM-PCA-FUSED-1/items/CBERS4A_WPM_PCA_RGB321_20260903_204_133');
+ assert.equal(scene.date,'2026-09-03T00:00:00Z');
+ for(const feature of municipality.features){
+  const rings=feature.geometry.type==='Polygon'?feature.geometry.coordinates:feature.geometry.coordinates.flat();
+  for(const ring of rings)for(const point of ring)assert.ok(api.imageryCoverage(config,point),`vértice municipal fora das cenas: ${point}`);
+ }
+ const insideRing=(point,ring)=>{
+  let inside=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+   const [xi,yi]=ring[i],[xj,yj]=ring[j];
+   if((yi>point[1])!==(yj>point[1])&&point[0]<(xj-xi)*(point[1]-yi)/(yj-yi)+xi)inside=!inside;
+  }
+  return inside;
+ };
+ const polygons=municipality.features.flatMap(feature=>feature.geometry.type==='Polygon'?[feature.geometry.coordinates]:feature.geometry.coordinates);
+ const extent=municipality.features.reduce((bounds,feature)=>{
+  const rings=feature.geometry.type==='Polygon'?feature.geometry.coordinates:feature.geometry.coordinates.flat();
+  for(const point of rings[0]){bounds[0]=Math.min(bounds[0],point[0]);bounds[1]=Math.min(bounds[1],point[1]);bounds[2]=Math.max(bounds[2],point[0]);bounds[3]=Math.max(bounds[3],point[1]);}
+  return bounds;
+ },[Infinity,Infinity,-Infinity,-Infinity]);
+ let interiorSamples=0;
+ for(let lat=extent[1]+0.01;lat<extent[3];lat+=0.04)for(let lng=extent[0]+0.01;lng<extent[2];lng+=0.04){
+  const point=[lng,lat];
+  const inMunicipality=polygons.some(rings=>insideRing(point,rings[0])&&!rings.slice(1).some(ring=>insideRing(point,ring)));
+  if(inMunicipality){interiorSamples++;assert.ok(api.imageryCoverage(config,point),`interior municipal fora das cenas: ${point}`);}
+ }
+ assert.ok(interiorSamples>100,'a grade deve testar mais de 100 pontos do interior municipal');
+ for(const point of [[-46.4,-15.95],[-46.38,-16],[-46.42,-15.9]])assert.ok(api.imageryCoverage(config,point),`interior do nordeste municipal fora das cenas: ${point}`);
+});
 test('cobertura rejeita anel inválido e respeita os vazios do polígono',async()=>{
  const config=JSON.parse(await readFile(new URL('../maps/data/basemaps.json',import.meta.url)));
  const bad=structuredClone(config);bad.scenes[0].footprint.coordinates[0][0]=[Infinity,0];
@@ -52,21 +87,32 @@ test('falha do fundo ativo preserva vetores; erro tardio de fundo desativado é 
  assert.equal(canvas.dataset.basemap,'plain');
  assert.match(status.textContent,/indisponível/);
  control.changeBase('satellite');
- for(const layer of layers.slice(0,3))layer.emit('loading');
- layers[0].emit('tileload');layers[1].emit('tileerror');
- for(const layer of layers.slice(0,3))layer.emit('load');
+ const visibleScenes=()=>layers.slice(0,-1).filter(layer=>{
+  const bounds=layer.options.bounds;
+  return center.lat>=bounds[0][0]&&center.lat<=bounds[1][0]&&center.lng>=bounds[0][1]&&center.lng<=bounds[1][1];
+ });
+ const initialScenes=visibleScenes();
+ assert.ok(initialScenes.length>=2);
+ for(const layer of initialScenes)layer.emit('loading');
+ initialScenes[0].emit('tileload');initialScenes[1].emit('tileerror');
+ for(const layer of initialScenes)layer.emit('load');
  await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'satellite');
  assert.match(status.textContent,/trechos/);
  // A later view can fail completely even after earlier tiles loaded successfully.
- for(const layer of layers.slice(0,3))layer.emit('loading');
- for(const layer of layers.slice(0,3))layer.emit('tileerror');
- for(const layer of layers.slice(0,3))layer.emit('load');
+ for(const layer of initialScenes)layer.emit('loading');
+ for(const layer of initialScenes)layer.emit('tileerror');
+ for(const layer of initialScenes)layer.emit('load');
  await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'plain');
- control.changeBase('satellite');layers[1].emit('loading');layers[1].emit('tileload');layers[1].emit('load');
+ control.changeBase('satellite');
+ for(const layer of visibleScenes()){layer.emit('loading');layer.emit('tileload');layer.emit('load');}
  center={lng:-46.3,lat:-16.8}; // Only the eastern scene covers this later view.
- layers[0].emit('loading');layers[0].emit('tileerror');layers[0].emit('load');
+ const easternScenes=visibleScenes();
+ assert.ok(easternScenes.length>0);
+ for(const layer of easternScenes)layer.emit('loading');
+ for(const layer of easternScenes)layer.emit('tileerror');
+ for(const layer of easternScenes)layer.emit('load');
  await Promise.resolve();
  assert.equal(canvas.dataset.basemap,'plain');
 });
