@@ -78,6 +78,12 @@ function sequence(value, minimum, validate) {
   value.forEach(validate);
 }
 
+function validIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 export function validateGeometry(geometry) {
   const line = coordinates => sequence(coordinates, 2, validatePosition);
   const ring = coordinates => {
@@ -110,6 +116,7 @@ export function validateLayer(layer, geojson, { temporal } = {}) {
       const period = feature.properties?.[temporal.field];
       const latest = temporal.latestByLayer[layer.id];
       if (typeof period !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(period) || !temporal.years.includes(Number(period.slice(0, 4))) || period > latest) throw Error('Período temporal inválido ou posterior ao fim documentado da camada');
+      if ((layer.id === 'focos' || Object.hasOwn(feature.properties || {}, 'data_pas')) && (!validIsoDate(feature.properties?.data_pas) || feature.properties.data_pas.slice(0, 7) !== period)) throw Error('Data do foco inválida ou incompatível com o período temporal');
     }
   }
   if (layer.kind === 'points' && geojson.features.length && !geojson.features.some(feature => feature.properties?.grupo === layer.group)) throw Error('Grupo da camada não encontrado nos dados');

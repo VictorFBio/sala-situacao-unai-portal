@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "preparedAt": "2026-10-15T10:30:32-03:00",
+  "preparedAt": "2026-10-15T11:11:53-03:00",
   "municipalityCode": "3170404",
   "publicationCrs": "EPSG:4326",
   "transformation": {
@@ -17,6 +17,14 @@
     "focos": "2026-09",
     "area-queimada": "2026-09"
   },
+  "inputs": {
+    "municipalBoundary": {
+      "archive": "MG_Municipios_2025.zip",
+      "url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2025/UFs/MG/MG_Municipios_2025.zip",
+      "sha256": "15313BAF3A05D43F03C50DACB605E2B07F6E3CD961AA1594C8E4AEFBD6BAACD7",
+      "downloadedAt": "2026-10-15"
+    }
+  },
   "files": [
     {
       "path": "focos.geojson",
@@ -26,8 +34,8 @@
     },
     {
       "path": "area-queimada.geojson",
-      "sha256": "4442c55438543273a68fed44f666aa56f37c252c4ca4236a2bdec5eb3de970c3",
-      "bytes": 233757,
+      "sha256": "73b5b5703acf9733e86a0df1a27353238328cb77ca8f081c27aa637992bc7546",
+      "bytes": 288522,
       "features": 712
     },
     {
@@ -38,8 +46,8 @@
     },
     {
       "path": "municipio.geojson",
-      "sha256": "176f570b98113da87330aafea909305f0ef888df8eb10c636e15dfd793a9a76a",
-      "bytes": 73061,
+      "sha256": "ca18ec7072c7a488c8cea0478afb5a2c90a6202e33b2a987f312984db04ef4c8",
+      "bytes": 332549,
       "features": 1
     },
     {
@@ -60,8 +68,8 @@
     },
     {
       "path": "metadata.json",
-      "sha256": "a5e54bbe07b66c1f080fef55a57a415d068601ac96701388f54117a09896f297",
-      "bytes": 7133
+      "sha256": "300eca64e9bb2ac06041b9a2de5c49fe4e811b97e63ed43946dc12dc028f2b52",
+      "bytes": 7764
     }
   ]
 }

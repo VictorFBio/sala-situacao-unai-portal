@@ -49,10 +49,26 @@ test('tema temporal mostra seletores de ano e mês e sinaliza a série parcial',
 test('camada temporal não aceita meses inválidos nem dados posteriores ao período declarado', () => {
   const layer = { id: 'focos', kind: 'context', geometryTypes: ['Point'], style: { color: '#c43d2f' } };
   const temporal = { field: 'periodo', years: [2025, 2026], partialYear: 2026, defaultYear: 2025, defaultMonth: 'all', layerIds: ['focos'], latestByLayer: { focos: '2026-09' } };
-  const feature = period => ({ type: 'Feature', properties: { periodo: period }, geometry: { type: 'Point', coordinates: [-46.9, -16.3] } });
+  const feature = (period, data_pas = `${period}-15`) => ({ type: 'Feature', properties: { periodo: period, data_pas }, geometry: { type: 'Point', coordinates: [-46.9, -16.3] } });
   assert.doesNotThrow(() => model.validateLayer(layer, { type: 'FeatureCollection', features: [feature('2026-09')] }, { temporal }));
   assert.throws(() => model.validateLayer(layer, { type: 'FeatureCollection', features: [feature('2026-10')] }, { temporal }), /período temporal/i);
   assert.throws(() => model.validateLayer(layer, { type: 'FeatureCollection', features: [feature('2026-13')] }, { temporal }), /período temporal/i);
+  assert.throws(() => model.validateLayer(layer, { type: 'FeatureCollection', features: [feature('2026-02', '2026-02-31')] }, { temporal }), /data|data_pas/i);
+  assert.throws(() => model.validateLayer(layer, { type: 'FeatureCollection', features: [feature('2026-02', '2026-03-01')] }, { temporal }), /data|data_pas|período temporal/i);
+  assert.throws(() => model.validateLayer(layer, { type: 'FeatureCollection', features: [feature('2026-02', null)] }, { temporal }), /data|data_pas/i);
+});
+
+test('preparação das queimadas usa limite municipal IBGE original e registra fonte dos serviços', async () => {
+  const script = await readFile(new URL('../scripts/prepare-queimadas.py', import.meta.url), 'utf8');
+  const metadata = JSON.parse(await readFile(new URL('../maps/data/queimadas/metadata.json', import.meta.url), 'utf8'));
+  assert.match(script, /ibge2025.*MG_Municipios_2025\.shp/s);
+  assert.doesNotMatch(script, /maps"\s*\/\s*"data"\s*\/\s*"rede-servicos"\s*\/\s*"municipio\.geojson/);
+  assert.match(script, /boundary_properties\s*=\s*\{[\s\S]*?as_plain\(boundary_feature\.attribute/);
+  assert.match(script, /write_geojson\("municipio\.geojson",\s*\[feature_json\(boundary_geometry, boundary_properties\)\]\)/);
+  assert.doesNotMatch(script, /shutil\.copyfile\(BOUNDARY_PATH, OUTPUT \/ "municipio\.geojson"\)/);
+  assert.ok(metadata.contextSource.links.some(link => /Prefeitura de Unaí/i.test(link.label)));
+  assert.match(metadata.contextSource.boundaryArchiveSha256, /^[A-F0-9]{64}$/);
+  assert.match(metadata.contextSource.period, /09\/09\/2026/);
 });
 
 test('extratos municipais publicados têm períodos coerentes com a janela declarada', async () => {

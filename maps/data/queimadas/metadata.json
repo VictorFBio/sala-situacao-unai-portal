@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "queimadas",
   "title": "Queimadas e focos de calor",
-  "preparedAt": "2026-10-15T10:30:32-03:00",
+  "preparedAt": "2026-10-15T11:11:53-03:00",
   "publicationCrs": "EPSG:4326",
   "source": {
     "label": "INPE Programa Queimadas · focos de calor do satélite de referência AQUA M-T",
@@ -43,8 +43,12 @@
   "contextSource": {
     "label": "IBGE · malha municipal e localidades do Censo 2022; pontos de serviços da Sala de Situação",
     "license": "A licença padronizada não foi confirmada nos metadados oficiais consultados. Para a malha IBGE 2025, consulte a nota técnica e legal de uso; os serviços mantêm os termos e créditos da camada original.",
-    "period": "Limite municipal IBGE 2025; localidades IBGE 2022; serviços conforme a fonte cartográfica já usada pela Sala de Situação.",
+    "period": "Limite municipal IBGE 2025; localidades IBGE 2022; endereços dos serviços consultados em 09/09/2026.",
     "links": [
+      {
+        "label": "IBGE · malha municipal 2025 de Minas Gerais (arquivo original)",
+        "href": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2025/UFs/MG/MG_Municipios_2025.zip"
+      },
       {
         "label": "IBGE · malhas territoriais",
         "href": "https://www.ibge.gov.br/geociencias/todos-os-produtos-geociencias/15774-malhas.html"
@@ -60,8 +64,14 @@
       {
         "label": "IBGE · arquivos de localidades 2022",
         "href": "https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/localidades/Localidades_do_Brasil/2022/"
+      },
+      {
+        "label": "Prefeitura de Unaí · endereços dos serviços (consulta em 09/09/2026)",
+        "href": "https://www.prefeituraunai.mg.gov.br/pmu2/index.php/secretarias/governo/a-secretaria-governo/73-enderecos-e-telefones.html"
       }
     ],
+    "boundaryArchiveSha256": "15313BAF3A05D43F03C50DACB605E2B07F6E3CD961AA1594C8E4AEFBD6BAACD7",
+    "boundaryDownloadedAt": "2026-10-15",
     "filters": [
       "Unaí (MG); localidades selecionadas pelo código municipal 3170404 e conferidas por interseção com a malha municipal."
     ],
