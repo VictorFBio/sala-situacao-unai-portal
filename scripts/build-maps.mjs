@@ -21,7 +21,8 @@ export async function verifyThemeProvenance(sourceDir, theme) {
     const bytes = await readFile(path.join(sourceDir, relative));
     if (createHash('sha256').update(bytes).digest('hex') !== file.sha256) throw Error(`Falha de integridade no hash: ${relative}`);
   }
-  for (const relative of [theme.metadataPath, ...theme.layers.map(layer => layer.path)]) if (!recorded.has(relative)) throw Error(`Arquivo ausente da prova: ${relative}`);
+  const required = [theme.metadataPath, ...theme.layers.map(layer => layer.path), ...(theme.comparison ? [theme.comparison.beforePath, theme.comparison.afterPath] : [])];
+  for (const relative of required) if (!recorded.has(relative)) throw Error(`Arquivo ausente da prova: ${relative}`);
 }
 
 export async function buildMapsAssets({ sourceDir, outputDir, catalogue }) {

@@ -11,6 +11,9 @@ export function validateLocalPath(value) {
 function validateStyle(style = {}) {
   for (const property of ['color', 'fillColor']) if (style[property] && !colors.test(style[property])) throw Error('Cor inválida');
   if (style.symbol && !['circle', 'square', 'cross', 'diamond', 'triangle'].includes(style.symbol)) throw Error('Símbolo inválido');
+  if (style.legendSymbol !== undefined && style.legendSymbol !== 'line') throw Error('Símbolo de legenda inválido');
+  if (style.radius !== undefined && (!Number.isFinite(style.radius) || style.radius <= 0 || style.radius > 20)) throw Error('Tamanho de símbolo inválido');
+  if (style.keepContrast !== undefined && typeof style.keepContrast !== 'boolean') throw Error('Configuração de contraste inválida');
   if (style.field) {
     if (!Array.isArray(style.classes) || !style.classes.length || !colors.test(style.missing?.color) || !style.missing.label) throw Error('Classes e ausência devem estar definidas');
     let previousMax = -Infinity;
@@ -38,6 +41,8 @@ export function validateCatalogue(catalogue) {
       layerIds.add(layer.id);
       validateLocalPath(layer.path);
       if (!layer.label || !['points', 'context'].includes(layer.kind) || typeof layer.visible !== 'boolean' || !Array.isArray(layer.geometryTypes) || !layer.geometryTypes.length || layer.geometryTypes.some(type => !geometryTypes.has(type))) throw Error('Camada inválida');
+      if (layer.legendLabel !== undefined && typeof layer.legendLabel !== 'string') throw Error('Legenda de camada inválida');
+      if (layer.countLabel !== undefined && typeof layer.countLabel !== 'string') throw Error('Unidade de contagem da camada inválida');
       if (layer.kind === 'points') {
         if (layer.geometryTypes.some(type => type !== 'Point')) throw Error('Camadas de pontos consultáveis exigem geometria Point');
         if (!layer.group || groups.has(layer.group)) throw Error('Grupo ausente ou duplicado');
@@ -45,6 +50,20 @@ export function validateCatalogue(catalogue) {
         if (!Array.isArray(layer.popupFields) || layer.popupFields.some(field => !field.field || !field.label)) throw Error('Campos de consulta inválidos');
       }
       validateStyle(layer.style);
+    }
+    if (theme.temporal) {
+      const temporal = theme.temporal;
+      const validMonth = value => typeof value === 'string' && /^(0[1-9]|1[0-2])$/.test(value);
+      const validPeriod = value => typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+      if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(temporal.field || '') || !Array.isArray(temporal.years) || !temporal.years.length || temporal.years.some((year, index) => !Number.isInteger(year) || year < 2000 || year > 2100 || (index && year !== temporal.years[index - 1] + 1)) || !temporal.layerIds?.length || new Set(temporal.layerIds).size !== temporal.layerIds.length || temporal.layerIds.some(id => !layerIds.has(id)) || (temporal.partialYear !== null && (!temporal.years.includes(temporal.partialYear) || temporal.partialYear !== temporal.years.at(-1))) || !temporal.years.includes(temporal.defaultYear) || (temporal.defaultMonth !== 'all' && !validMonth(temporal.defaultMonth)) || !temporal.latestByLayer || temporal.layerIds.some(id => !validPeriod(temporal.latestByLayer[id]) || !temporal.years.includes(Number(temporal.latestByLayer[id].slice(0, 4))))) throw Error('Configuração temporal inválida: confira campo, camadas, anos, mês parcial e períodos disponíveis');
+      for (const id of Object.keys(temporal.latestByLayer)) if (!temporal.layerIds.includes(id)) throw Error('Camada sem período temporal correspondente');
+    }
+    if (theme.comparison) {
+      const comparison = theme.comparison;
+      const validDate = value => { if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false; const date = new Date(`${value}T00:00:00Z`); return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value; };
+      validateLocalPath(comparison.beforePath);
+      validateLocalPath(comparison.afterPath);
+      if (comparison.beforePath === comparison.afterPath || !Array.isArray(comparison.bounds) || comparison.bounds.length !== 4 || comparison.bounds.some(value => !Number.isFinite(value)) || comparison.bounds[0] < -180 || comparison.bounds[0] > 180 || comparison.bounds[2] < -180 || comparison.bounds[2] > 180 || comparison.bounds[1] < -90 || comparison.bounds[3] > 90 || comparison.bounds[1] >= comparison.bounds[3] || comparison.bounds[0] >= comparison.bounds[2] || !validDate(comparison.beforeDate) || !validDate(comparison.afterDate) || comparison.beforeDate >= comparison.afterDate || (comparison.eventDate && (!validDate(comparison.eventDate) || comparison.eventDate <= comparison.beforeDate || comparison.eventDate >= comparison.afterDate)) || !comparison.attribution || !comparison.license) throw Error('Comparação de imagens inválida: confira caminhos locais, recorte, datas e atribuição');
     }
   }
   return catalogue;
@@ -72,7 +91,7 @@ export function validateGeometry(geometry) {
   validators[geometry.type](geometry.coordinates);
 }
 
-export function validateLayer(layer, geojson) {
+export function validateLayer(layer, geojson, { temporal } = {}) {
   if (geojson?.type !== 'FeatureCollection' || !Array.isArray(geojson.features) || geojson.crs) throw Error('Camada GeoJSON inválida ou CRS não publicado');
   const codes = new Set();
   for (const feature of geojson.features) {
@@ -87,9 +106,24 @@ export function validateLayer(layer, geojson) {
       if (layer.allowedGroups && !layer.allowedGroups.includes(feature.properties.grupo)) throw Error('Grupo não configurado no catálogo');
     }
     if (layer.kind !== 'points' || feature.properties.grupo === layer.group) styleForFeature(feature, layer);
+    if (temporal?.layerIds.includes(layer.id)) {
+      const period = feature.properties?.[temporal.field];
+      const latest = temporal.latestByLayer[layer.id];
+      if (typeof period !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(period) || !temporal.years.includes(Number(period.slice(0, 4))) || period > latest) throw Error('Período temporal inválido ou posterior ao fim documentado da camada');
+    }
   }
   if (layer.kind === 'points' && geojson.features.length && !geojson.features.some(feature => feature.properties?.grupo === layer.group)) throw Error('Grupo da camada não encontrado nos dados');
   return geojson;
+}
+
+export function filterTemporalFeatures(features, temporal, { year, month = 'all' } = {}) {
+  const selectedYear = Number(year);
+  if (!temporal?.years?.includes(selectedYear) || (month !== 'all' && !/^(0[1-9]|1[0-2])$/.test(String(month)))) return [];
+  const prefix = `${selectedYear}-`;
+  return features.filter(feature => {
+    const period = feature.properties?.[temporal.field];
+    return typeof period === 'string' && period.startsWith(prefix) && (month === 'all' || period.slice(5, 7) === String(month));
+  });
 }
 
 export function collectPointFeatures(theme, datasets) {

@@ -10,14 +10,14 @@ test('catálogo distingue camadas iniciais de saúde das referências e permite 
   assert.equal(typeof api.validateCatalogue, 'function');
   const catalogue = await loadCatalogue();
   api.validateCatalogue(catalogue);
-  assert.equal(catalogue.themes.length, 1);
+  assert.equal(catalogue.themes.length, 2);
   const layers = catalogue.themes[0].layers.filter(l => l.kind === 'points');
   assert.deepEqual(layers.filter(l => l.visible).map(l => l.group), ['UBS / ESF', 'Saúde especializada e gestão', 'Urgência e emergência']);
   assert.equal(layers.filter(l => !l.visible).length, 2);
   const second = structuredClone(catalogue.themes[0]);
   second.id = 'teste-configuracao';
   const expanded = { schemaVersion: 1, themes: [...catalogue.themes, second] };
-  assert.equal(api.validateCatalogue(expanded).themes.length, 2);
+  assert.equal(api.validateCatalogue(expanded).themes.length, catalogue.themes.length + 1);
 });
 
 test('busca normaliza acentos e filtros preservam locais distintos e resultado vazio', async () => {
@@ -69,4 +69,17 @@ test('classes respeitam fronteiras e dados ausentes nunca são convertidos em ze
   assert.equal(api.styleForFeature({ properties: { valor: 0 } }, layer).fillColor, '#08588e');
   assert.equal(api.styleForFeature({ properties: { valor: 10 } }, layer).fillColor, '#b8493e');
   for (const value of [null, undefined, '', '0']) assert.equal(api.styleForFeature({ properties: { valor: value } }, layer).fillColor, '#b8bec8');
+});
+
+test('estilo de camadas temáticas valida tamanho e contraste', async () => {
+  const catalogue = await loadCatalogue();
+  const focus = catalogue.themes.find(theme => theme.id === 'queimadas').layers.find(layer => layer.id === 'focos');
+  assert.equal(api.validateCatalogue(catalogue).themes.length, 2);
+  const invalidRadius = structuredClone(catalogue);
+  invalidRadius.themes.find(theme => theme.id === 'queimadas').layers.find(layer => layer.id === 'focos').style.radius = 0;
+  assert.throws(() => api.validateCatalogue(invalidRadius), /tamanho/i);
+  const invalidContrast = structuredClone(catalogue);
+  invalidContrast.themes.find(theme => theme.id === 'queimadas').layers.find(layer => layer.id === 'focos').style.keepContrast = 'yes';
+  assert.throws(() => api.validateCatalogue(invalidContrast), /contraste/i);
+  assert.equal(focus.style.keepContrast, true);
 });

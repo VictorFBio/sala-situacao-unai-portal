@@ -10,16 +10,465 @@
       "initialView": "urbano",
       "metadataPath": "data/rede-servicos/metadata.json",
       "layers": [
-        { "id": "municipio", "label": "Limite municipal · IBGE 2025", "path": "data/rede-servicos/municipio.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": true, "style": { "color": "#08588e", "fillColor": "#edf3f7", "fillOpacity": 0.4, "weight": 1.8 } },
-        { "id": "urbano", "label": "Área urbanizada · IBGE 2019", "path": "data/rede-servicos/urbano.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": true, "style": { "color": "#7c91a3", "fillColor": "#b9c9d7", "fillOpacity": 0.45, "weight": 0.7 } },
-        { "id": "municipios", "label": "Municípios do entorno · IBGE 2025", "path": "data/rede-servicos/municipios.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": false, "style": { "color": "#a8b3bf", "fillColor": "#f2f4f6", "fillOpacity": 0.15, "weight": 0.8 } },
-        { "id": "estados", "label": "Contexto estadual · IBGE 2025", "path": "data/rede-servicos/estados.geojson", "geometryTypes": ["Polygon", "MultiPolygon"], "kind": "context", "visible": false, "style": { "color": "#687787", "fillOpacity": 0, "weight": 1.5 } },
-        { "id": "ubs-esf", "label": "UBS e Saúde da Família", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "UBS / ESF", "visible": true, "style": { "color": "#08588e", "symbol": "circle" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
-        { "id": "especializada", "label": "Saúde especializada e gestão", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Saúde especializada e gestão", "visible": true, "style": { "color": "#137c70", "symbol": "square" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
-        { "id": "urgencia", "label": "Urgência e emergência", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Urgência e emergência", "visible": true, "style": { "color": "#b8493e", "symbol": "cross" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
-        { "id": "protecao-social", "label": "Proteção social", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Proteção social", "visible": false, "style": { "color": "#966426", "symbol": "diamond" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] },
-        { "id": "seguranca", "label": "Segurança pública", "path": "data/rede-servicos/locais.geojson", "geometryTypes": ["Point"], "kind": "points", "group": "Segurança pública", "visible": false, "style": { "color": "#636b83", "symbol": "triangle" }, "popupFields": [{ "field": "endereco", "label": "Endereço" }, { "field": "bairro", "label": "Bairro" }, { "field": "qualidade_geocodificacao", "label": "Qualidade da localização" }, { "field": "observacao", "label": "Observação da fonte" }] }
+        {
+          "id": "municipio",
+          "label": "Limite municipal · IBGE 2025",
+          "path": "data/rede-servicos/municipio.geojson",
+          "geometryTypes": [
+            "Polygon",
+            "MultiPolygon"
+          ],
+          "kind": "context",
+          "visible": true,
+          "style": {
+            "color": "#08588e",
+            "fillColor": "#edf3f7",
+            "fillOpacity": 0.4,
+            "weight": 1.8
+          }
+        },
+        {
+          "id": "urbano",
+          "label": "Área urbanizada · IBGE 2019",
+          "path": "data/rede-servicos/urbano.geojson",
+          "geometryTypes": [
+            "Polygon",
+            "MultiPolygon"
+          ],
+          "kind": "context",
+          "visible": true,
+          "style": {
+            "color": "#7c91a3",
+            "fillColor": "#b9c9d7",
+            "fillOpacity": 0.45,
+            "weight": 0.7
+          }
+        },
+        {
+          "id": "municipios",
+          "label": "Municípios do entorno · IBGE 2025",
+          "path": "data/rede-servicos/municipios.geojson",
+          "geometryTypes": [
+            "Polygon",
+            "MultiPolygon"
+          ],
+          "kind": "context",
+          "visible": false,
+          "style": {
+            "color": "#a8b3bf",
+            "fillColor": "#f2f4f6",
+            "fillOpacity": 0.15,
+            "weight": 0.8
+          }
+        },
+        {
+          "id": "estados",
+          "label": "Contexto estadual · IBGE 2025",
+          "path": "data/rede-servicos/estados.geojson",
+          "geometryTypes": [
+            "Polygon",
+            "MultiPolygon"
+          ],
+          "kind": "context",
+          "visible": false,
+          "style": {
+            "color": "#687787",
+            "fillOpacity": 0,
+            "weight": 1.5
+          }
+        },
+        {
+          "id": "ubs-esf",
+          "label": "UBS e Saúde da Família",
+          "path": "data/rede-servicos/locais.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "points",
+          "group": "UBS / ESF",
+          "visible": true,
+          "style": {
+            "color": "#08588e",
+            "symbol": "circle"
+          },
+          "popupFields": [
+            {
+              "field": "endereco",
+              "label": "Endereço"
+            },
+            {
+              "field": "bairro",
+              "label": "Bairro"
+            },
+            {
+              "field": "qualidade_geocodificacao",
+              "label": "Qualidade da localização"
+            },
+            {
+              "field": "observacao",
+              "label": "Observação da fonte"
+            }
+          ]
+        },
+        {
+          "id": "especializada",
+          "label": "Saúde especializada e gestão",
+          "path": "data/rede-servicos/locais.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "points",
+          "group": "Saúde especializada e gestão",
+          "visible": true,
+          "style": {
+            "color": "#137c70",
+            "symbol": "square"
+          },
+          "popupFields": [
+            {
+              "field": "endereco",
+              "label": "Endereço"
+            },
+            {
+              "field": "bairro",
+              "label": "Bairro"
+            },
+            {
+              "field": "qualidade_geocodificacao",
+              "label": "Qualidade da localização"
+            },
+            {
+              "field": "observacao",
+              "label": "Observação da fonte"
+            }
+          ]
+        },
+        {
+          "id": "urgencia",
+          "label": "Urgência e emergência",
+          "path": "data/rede-servicos/locais.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "points",
+          "group": "Urgência e emergência",
+          "visible": true,
+          "style": {
+            "color": "#b8493e",
+            "symbol": "cross"
+          },
+          "popupFields": [
+            {
+              "field": "endereco",
+              "label": "Endereço"
+            },
+            {
+              "field": "bairro",
+              "label": "Bairro"
+            },
+            {
+              "field": "qualidade_geocodificacao",
+              "label": "Qualidade da localização"
+            },
+            {
+              "field": "observacao",
+              "label": "Observação da fonte"
+            }
+          ]
+        },
+        {
+          "id": "protecao-social",
+          "label": "Proteção social",
+          "path": "data/rede-servicos/locais.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "points",
+          "group": "Proteção social",
+          "visible": false,
+          "style": {
+            "color": "#966426",
+            "symbol": "diamond"
+          },
+          "popupFields": [
+            {
+              "field": "endereco",
+              "label": "Endereço"
+            },
+            {
+              "field": "bairro",
+              "label": "Bairro"
+            },
+            {
+              "field": "qualidade_geocodificacao",
+              "label": "Qualidade da localização"
+            },
+            {
+              "field": "observacao",
+              "label": "Observação da fonte"
+            }
+          ]
+        },
+        {
+          "id": "seguranca",
+          "label": "Segurança pública",
+          "path": "data/rede-servicos/locais.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "points",
+          "group": "Segurança pública",
+          "visible": false,
+          "style": {
+            "color": "#636b83",
+            "symbol": "triangle"
+          },
+          "popupFields": [
+            {
+              "field": "endereco",
+              "label": "Endereço"
+            },
+            {
+              "field": "bairro",
+              "label": "Bairro"
+            },
+            {
+              "field": "qualidade_geocodificacao",
+              "label": "Qualidade da localização"
+            },
+            {
+              "field": "observacao",
+              "label": "Observação da fonte"
+            }
+          ]
+        }
       ]
+    },
+    {
+      "id": "queimadas",
+      "title": "Queimadas e focos de calor",
+      "description": "Explore detecções orbitais e o produto mensal de área queimada em Unaí, com localidades, serviços públicos e imagens de satélite de referência.",
+      "status": "piloto-local",
+      "basemapsPath": "data/basemaps.json",
+      "initialView": "municipio",
+      "metadataPath": "data/queimadas/metadata.json",
+      "layers": [
+        {
+          "id": "area-queimada",
+          "label": "Área queimada · AQ1KM Coleção 2",
+          "path": "data/queimadas/area-queimada.geojson",
+          "geometryTypes": [
+            "Polygon",
+            "MultiPolygon"
+          ],
+          "kind": "context",
+          "visible": true,
+          "legendLabel": "Área queimada AQ1KM · células aproximadas de 1 km",
+          "countLabel": "feições AQ1KM",
+          "style": {
+            "color": "#903b2d",
+            "fillColor": "#df6846",
+            "fillOpacity": 0.58,
+            "weight": 0.6,
+            "keepContrast": true
+          },
+          "popupFields": [
+            {
+              "field": "periodo",
+              "label": "Mês de referência"
+            },
+            {
+              "field": "data",
+              "label": "Data no arquivo de origem"
+            },
+            {
+              "field": "DN",
+              "label": "Valor DN da fonte"
+            }
+          ]
+        },
+        {
+          "id": "focos",
+          "label": "Focos de calor · AQUA M-T",
+          "path": "data/queimadas/focos.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "context",
+          "visible": true,
+          "legendLabel": "Detecção orbital de foco de calor",
+          "countLabel": "detecções orbitais",
+          "style": {
+            "color": "#bd3d1e",
+            "fillColor": "#f26937",
+            "fillOpacity": 0.96,
+            "weight": 1.2,
+            "radius": 5,
+            "symbol": "triangle",
+            "keepContrast": true
+          },
+          "popupFields": [
+            {
+              "field": "data_hora_gmt",
+              "label": "Data e hora GMT"
+            },
+            {
+              "field": "satelite",
+              "label": "Satélite de referência"
+            },
+            {
+              "field": "frp",
+              "label": "FRP informada na fonte"
+            },
+            {
+              "field": "numero_dias_sem_chuva",
+              "label": "Dias sem chuva na fonte"
+            },
+            {
+              "field": "risco_fogo",
+              "label": "Risco de fogo na fonte"
+            },
+            {
+              "field": "bioma",
+              "label": "Bioma informado na fonte"
+            }
+          ]
+        },
+        {
+          "id": "localidades",
+          "label": "Localidades · IBGE 2022",
+          "path": "data/queimadas/localidades.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "context",
+          "visible": true,
+          "legendLabel": "Localidade de referência do Censo 2022",
+          "style": {
+            "color": "#344f65",
+            "fillColor": "#ffffff",
+            "fillOpacity": 1,
+            "weight": 1.2,
+            "radius": 4,
+            "symbol": "circle",
+            "keepContrast": true
+          },
+          "popupFields": [
+            {
+              "field": "categoria",
+              "label": "Categoria IBGE"
+            },
+            {
+              "field": "subcategoria",
+              "label": "Subcategoria IBGE"
+            },
+            {
+              "field": "ano_referencia",
+              "label": "Ano de referência"
+            }
+          ]
+        },
+        {
+          "id": "servicos",
+          "label": "Serviços públicos mapeados",
+          "path": "data/queimadas/servicos.geojson",
+          "geometryTypes": [
+            "Point"
+          ],
+          "kind": "context",
+          "visible": false,
+          "legendLabel": "Serviço público (posição aproximada)",
+          "style": {
+            "color": "#08588e",
+            "fillColor": "#ffffff",
+            "fillOpacity": 1,
+            "weight": 1.3,
+            "radius": 5,
+            "symbol": "square",
+            "keepContrast": true
+          },
+          "popupFields": [
+            {
+              "field": "grupo",
+              "label": "Tipo de serviço"
+            },
+            {
+              "field": "endereco",
+              "label": "Endereço"
+            },
+            {
+              "field": "bairro",
+              "label": "Bairro informado"
+            },
+            {
+              "field": "qualidade_geocodificacao",
+              "label": "Qualidade da localização"
+            },
+            {
+              "field": "observacao",
+              "label": "Observação da fonte"
+            }
+          ]
+        },
+        {
+          "id": "municipio",
+          "label": "Limite municipal · IBGE 2025",
+          "path": "data/queimadas/municipio.geojson",
+          "geometryTypes": [
+            "Polygon",
+            "MultiPolygon"
+          ],
+          "kind": "context",
+          "visible": true,
+          "legendLabel": "Limite municipal de Unaí",
+          "style": {
+            "color": "#284f68",
+            "fillColor": "#ffffff",
+            "fillOpacity": 0,
+            "weight": 1.8,
+            "keepContrast": true,
+            "legendSymbol": "line"
+          }
+        }
+      ],
+      "temporal": {
+        "field": "periodo",
+        "years": [
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "partialYear": 2026,
+        "defaultYear": 2025,
+        "defaultMonth": "all",
+        "layerIds": [
+          "focos",
+          "area-queimada"
+        ],
+        "latestByLayer": {
+          "focos": "2026-09",
+          "area-queimada": "2026-09"
+        }
+      },
+      "comparison": {
+        "beforePath": "data/queimadas/comparacao-antes.jpg",
+        "afterPath": "data/queimadas/comparacao-depois.jpg",
+        "bounds": [
+          -46.7275,
+          -16.1725,
+          -46.7025,
+          -16.1475
+        ],
+        "beforeDate": "2026-09-03",
+        "afterDate": "2026-09-29",
+        "eventDate": "2026-09-10",
+        "attribution": "INPE / Brazil Data Cube · CBERS-4A WPM",
+        "license": "CC-BY-4.0"
+      }
     }
   ]
 }

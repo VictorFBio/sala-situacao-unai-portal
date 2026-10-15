@@ -114,7 +114,7 @@ async function generatePortal({ panelDir, outputDir, basePath = '/', revision, e
     const datasets = new Map();
     const allowedGroups = theme.layers.filter(layer => layer.kind === 'points').map(layer => layer.group);
     for (const layer of theme.layers) {
-      const geojson = validateLayer({ ...layer, allowedGroups }, JSON.parse(await readFile(path.join(mapsRoot, layer.path), 'utf8')));
+      const geojson = validateLayer({ ...layer, allowedGroups }, JSON.parse(await readFile(path.join(mapsRoot, layer.path), 'utf8')), { temporal: theme.temporal });
       datasets.set(layer.id, geojson);
     }
     themeBundles[theme.id] = { metadata, points: { type: 'FeatureCollection', features: collectPointFeatures(theme, datasets) } };

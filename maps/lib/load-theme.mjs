@@ -10,7 +10,7 @@ export async function loadThemeData({ theme, fallback = {}, read }) {
   // Attach failure handling immediately, before waiting for slower layers.
   const metadataPromise = get(theme.metadataPath).catch(() => { errors.push('Registro de fontes'); return fallback.metadata; });
   await Promise.all(theme.layers.map(async layer => {
-    try { datasets.set(layer.id, validateLayer({ ...layer, allowedGroups }, await get(layer.path))); }
+    try { datasets.set(layer.id, validateLayer({ ...layer, allowedGroups }, await get(layer.path), { temporal: theme.temporal })); }
     catch (error) { if (error.name !== 'AbortError') errors.push(layer.label); }
   }));
   const metadata = await metadataPromise;

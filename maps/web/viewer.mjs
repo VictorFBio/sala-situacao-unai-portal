@@ -1,6 +1,6 @@
 import { clusterFeatures, urbanExtent } from '../lib/basemap-model.mjs';
 import { installBasemaps } from './basemaps.mjs';
-import { validateCatalogue, filterFeatures, styleForFeature } from '../lib/theme-model.mjs';
+import { validateCatalogue, filterFeatures, filterTemporalFeatures, styleForFeature } from '../lib/theme-model.mjs';
 import { renderThemeContent, renderLocalList, symbolSvg, mapAttribution } from '../lib/render-page.mjs';
 import { loadThemeData } from '../lib/load-theme.mjs';
 import { createResourceLoader } from '../lib/resource-loader.mjs';
@@ -73,9 +73,11 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
     L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
     const contextPane = map.createPane('mapContext');
     contextPane.style.zIndex = '300';
+    const contextSymbolPane = map.createPane('mapContextSymbols');
+    contextSymbolPane.style.zIndex = '320';
     const contexts = new Map();
     let currentBase = 'plain';
-    const contextStyle = (feature, layer) => { const style=styleForFeature(feature,layer); return currentBase==='plain'||layer.style?.field ? style : {...style,fillOpacity:0.025,color:currentBase==='satellite' ? (layer.id==='urbano'?'#ffdf8a':'#ffffff') : style.color,weight:layer.id==='municipio'?2:0.9}; };
+    const contextStyle = (feature, layer) => { const style=styleForFeature(feature,layer); return currentBase==='plain'||layer.style?.field||layer.style?.keepContrast ? style : {...style,fillOpacity:0.025,color:currentBase==='satellite' ? (layer.id==='urbano'?'#ffdf8a':'#ffffff') : style.color,weight:layer.id==='municipio'?2:0.9}; };
     const pointLayers = theme.layers.filter(layer => layer.kind === 'points');
     const markerGroup = L.layerGroup().addTo(map);
     const markers = new Map();
@@ -88,11 +90,31 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
     const controls = [...root.querySelectorAll('[data-map-layer]')];
     let selected = null;
     let currentFeatures = allFeatures;
+    const temporal = theme.temporal;
+    const yearControl = root.querySelector('[data-map-year]');
+    const monthControl = root.querySelector('[data-map-month]');
+    const periodStatus = root.querySelector('[data-period-status]');
+    const temporalCounts = new Map();
+    let currentPeriodLabel = '';
+    let periodHasRecords = true;
 
-    for (const layer of theme.layers.filter(item => item.kind === 'context' && datasets.has(item.id))) {
-      try {
-      const drawn = L.geoJSON(datasets.get(layer.id), {
+    function drawContext(layer, features, visible) {
+      const pointsRenderer = L.canvas({ padding: 0.5, pane: 'mapContext' });
+      const drawn = L.geoJSON({ type: 'FeatureCollection', features }, {
         pane: 'mapContext', style: feature => contextStyle(feature, layer),
+        pointToLayer: (feature, latlng) => {
+          const style = contextStyle(feature, layer);
+          if (layer.style?.symbol && layer.style.symbol !== 'circle') {
+            return L.marker(latlng, {
+              icon: L.divIcon({ className: 'map-context-marker-symbol', html: symbolSvg(layer.style), iconSize: [20, 20], iconAnchor: [10, 10] }),
+              title: feature.properties?.nome || layer.label,
+              alt: feature.properties?.nome || layer.label,
+              keyboard: true,
+              pane: 'mapContextSymbols'
+            });
+          }
+          return L.circleMarker(latlng, { ...style, radius: layer.style?.radius || 4, renderer: pointsRenderer, fillOpacity: layer.style?.fillOpacity ?? 0.85 });
+        },
         onEachFeature: (feature, item) => {
           const name = feature.properties?.NM_MUN || feature.properties?.NM_UF || feature.properties?.nome;
           if (name) item.bindTooltip(document.createTextNode(String(name)));
@@ -103,7 +125,20 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         }
       });
       contexts.set(layer.id, drawn);
-      if (layer.visible) drawn.addTo(map);
+      if (visible) drawn.addTo(map);
+      return drawn;
+    }
+    for (const layer of theme.layers.filter(item => item.kind === 'context' && datasets.has(item.id))) {
+      try {
+        const features = datasets.get(layer.id).features;
+        const temporal = theme.temporal?.layerIds.includes(layer.id);
+        const visibleFeatures = temporal ? filterTemporalFeatures(features, theme.temporal, { year: theme.temporal.defaultYear, month: theme.temporal.defaultMonth }) : features;
+        if (temporal) {
+          temporalCounts.set(layer.id, visibleFeatures.length);
+          const countLabel = root.querySelector(`[data-temporal-count="${layer.id}"]`);
+          if (countLabel) countLabel.textContent = String(visibleFeatures.length);
+        }
+        drawContext(layer, visibleFeatures, layer.visible);
       } catch { errors.push(layer.label); }
     }
     const municipality = contexts.get('municipio')?.getBounds();
@@ -117,7 +152,45 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
 
     function setStatus() {
       status.dataset.state = errors.length ? 'error' : 'ready';
-      status.textContent = errors.length ? `Camada indisponível: ${[...new Set(errors)].join('; ')}. As demais referências e a lista continuam disponíveis.` : 'Arraste para navegar. Use + e − para aproximar. Selecione um símbolo ou um local na lista.';
+      if (errors.length) status.textContent = `Camada indisponível: ${[...new Set(errors)].join('; ')}. As demais referências e a lista continuam disponíveis.`;
+      else if (temporal && !periodHasRecords) status.textContent = `Nenhum registro nas camadas temporais para ${currentPeriodLabel}. Escolha outro período; a ausência de registros não significa ausência de queimadas.`;
+      else if (temporal) status.textContent = `${currentPeriodLabel}: as camadas mostram registros publicados para o período. Focos de calor são detecções orbitais, não incêndios individualizados.`;
+      else status.textContent = 'Arraste para navegar. Use + e − para aproximar. Selecione um símbolo ou um local na lista.';
+    }
+
+    function updateTemporal() {
+      if (!temporal || !yearControl || !monthControl) return;
+      const year = Number(yearControl.value);
+      const month = monthControl.value;
+      const monthName = month === 'all' ? 'ano todo' : monthControl.options[monthControl.selectedIndex]?.textContent || month;
+      currentPeriodLabel = `${year}${year === temporal.partialYear ? ' · parcial' : ''} · ${monthName}`;
+      const available = [];
+      periodHasRecords = false;
+      for (const id of temporal.layerIds) {
+        const layer = theme.layers.find(item => item.id === id);
+        const collection = datasets.get(id);
+        const old = contexts.get(id);
+        const input = controls.find(item => item.dataset.mapLayer === id);
+        if (!layer || !collection) { available.push(`${layer?.label || id}: indisponível`); continue; }
+        const features = filterTemporalFeatures(collection.features, temporal, { year, month });
+        temporalCounts.set(id, features.length);
+        periodHasRecords ||= features.length > 0;
+        const countLabel = root.querySelector(`[data-temporal-count="${id}"]`);
+        if (countLabel) countLabel.textContent = String(features.length);
+        const latest = temporal.latestByLayer[id];
+        available.push(`${layer.label} até ${latest.slice(5, 7)}/${latest.slice(0, 4)}`);
+        if (old && map.hasLayer(old)) map.removeLayer(old);
+        drawContext(layer, features, Boolean(input?.checked));
+      }
+      if (periodStatus) periodStatus.textContent = `${currentPeriodLabel}. Disponibilidade por fonte: ${available.join(' · ')}.`;
+      const summary = temporal.layerIds.map(id => {
+        const layer = theme.layers.find(item => item.id === id);
+        const count = temporalCounts.get(id) || 0;
+        const unit = layer?.countLabel || (layer?.geometryTypes.includes('Point') ? 'detecções' : 'feições AQ1KM');
+        return `${count} ${unit}`;
+      });
+      count.textContent = `${currentPeriodLabel} · ${summary.join(' · ')}`;
+      setStatus();
     }
 
     function showSelected(code, move = true) {
@@ -166,7 +239,8 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
       }
       list.innerHTML = renderLocalList(listedFeatures, theme, true, new Set(markers.keys()));
       const documentCount = listedFeatures.length;
-      count.textContent = pointLayers.length ? (documentCount === markers.size ? `${documentCount} ${documentCount === 1 ? 'local' : 'locais'} nos filtros` : `${documentCount} na lista · ${markers.size} no mapa`) : 'Camadas territoriais';
+      if (pointLayers.length) count.textContent = documentCount === markers.size ? `${documentCount} ${documentCount === 1 ? 'local' : 'locais'} nos filtros` : `${documentCount} na lista · ${markers.size} no mapa`;
+      else if (!temporal) count.textContent = 'Camadas territoriais';
       listCount.textContent = `${documentCount} ${documentCount === 1 ? 'resultado' : 'resultados'}`;
       if (selected && markers.has(selected)) showSelected(selected, false);
       else if (selected) { selected = null; root.querySelector('[data-map-selection]').textContent = 'O local selecionado está fora dos filtros atuais. Escolha outro local na lista ou no mapa.'; }
@@ -182,6 +256,12 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         else updatePoints();
       }, { signal: themeSignal });
     }
+    if (yearControl && monthControl) {
+      yearControl.disabled = false;
+      monthControl.disabled = false;
+      yearControl.addEventListener('change', updateTemporal, { signal: controller.signal });
+      monthControl.addEventListener('change', updateTemporal, { signal: controller.signal });
+    }
     search.disabled = !documentFeatures.length;
     search.addEventListener('input', updatePoints, { signal: themeSignal });
     list.addEventListener('click', event => { const button = event.target.closest('[data-select-local]'); if (button) showSelected(button.dataset.selectLocal); }, { signal: themeSignal });
@@ -191,13 +271,41 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         const urbanPoints = allFeatures.filter(feature => feature.properties.rural === false);
         const mainUrban = urbanExtent(datasets.get('urbano'));
         const urbanBounds = mainUrban ? L.latLngBounds([[mainUrban[1],mainUrban[0]],[mainUrban[3],mainUrban[2]]]).pad(0.1) : urbanPoints.length ? L.latLngBounds(urbanPoints.map(feature => [feature.geometry.coordinates[1], feature.geometry.coordinates[0]])).pad(0.15) : contexts.get('urbano')?.getBounds();
-        const bounds = button.dataset.mapView === 'urbano' && urbanBounds?.isValid() ? urbanBounds : extent;
+        const comparisonBounds = theme.comparison ? L.latLngBounds([[theme.comparison.bounds[1], theme.comparison.bounds[0]], [theme.comparison.bounds[3], theme.comparison.bounds[2]]]).pad(0.12) : null;
+        const bounds = button.dataset.mapView === 'piloto' && comparisonBounds?.isValid() ? comparisonBounds : button.dataset.mapView === 'urbano' && urbanBounds?.isValid() ? urbanBounds : extent;
         if (bounds?.isValid()) map.fitBounds(bounds, { padding: [25, 25], animate: false });
         for (const view of root.querySelectorAll('[data-map-view]')) view.setAttribute('aria-pressed', String(view === button));
       }, { signal: themeSignal });
     }
+    if (theme.comparison) {
+      const beforePane = map.createPane('comparisonBefore');
+      beforePane.style.zIndex = '250';
+      const afterPane = map.createPane('comparisonAfter');
+      afterPane.style.zIndex = '249';
+      const bounds = [[theme.comparison.bounds[1], theme.comparison.bounds[0]], [theme.comparison.bounds[3], theme.comparison.bounds[2]]];
+      const beforeImage = L.imageOverlay(mapsBase + theme.comparison.beforePath, bounds, { pane: 'comparisonBefore', interactive: false, alt: `Imagem de satélite de ${theme.comparison.beforeDate}` });
+      const afterImage = L.imageOverlay(mapsBase + theme.comparison.afterPath, bounds, { pane: 'comparisonAfter', interactive: false, alt: `Imagem de satélite de ${theme.comparison.afterDate}` });
+      const toggle = root.querySelector('[data-comparison-toggle]');
+      const slider = root.querySelector('[data-comparison-slider]');
+      const note = root.querySelector('[data-comparison-status]');
+      const updateSplit = () => {
+        const value = Number(slider.value);
+        if (beforeImage._image) beforeImage._image.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
+        slider.setAttribute('aria-valuetext', `${value}% da cena anterior e ${100 - value}% da cena posterior`);
+      };
+      toggle.addEventListener('change', () => {
+        if (toggle.checked) { beforeImage.addTo(map); afterImage.addTo(map); updateSplit(); note.textContent = `Comparação ativa: cena anterior de ${theme.comparison.beforeDate} e cena posterior de ${theme.comparison.afterDate}. O par facilita a inspeção visual; não confirma cicatriz de fogo.`; }
+        else { map.removeLayer(beforeImage); map.removeLayer(afterImage); note.textContent = 'Comparação desligada. Use “Área piloto” para enquadrar o local das imagens.'; }
+        slider.disabled = !toggle.checked;
+      }, { signal: controller.signal });
+      slider.addEventListener('input', updateSplit, { signal: controller.signal });
+      const imageError = () => { note.dataset.state = 'error'; note.textContent = 'Uma das imagens locais não carregou. As demais camadas continuam disponíveis.'; };
+      beforeImage.on('error', imageError);
+      afterImage.on('error', imageError);
+    }
     map.on('zoomend', updatePoints);
     updatePoints();
+    updateTemporal();
     if(theme.initialView==='urbano')root.querySelector('[data-map-view="urbano"]')?.click();
     const expand=root.querySelector('[data-map-expand]');
     expand?.addEventListener('click',()=>{const expanded=root.querySelector('.maps-workspace').classList.toggle('is-expanded');expand.setAttribute('aria-pressed',String(expanded));expand.textContent=expanded?'Reduzir mapa':'Ampliar mapa';map.invalidateSize();},{signal:themeSignal});

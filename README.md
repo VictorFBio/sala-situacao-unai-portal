@@ -19,13 +19,15 @@ Regra visual: usar a paleta sóbria do painel (azul institucional, branco e cinz
 
 Páginas e catálogo: `scripts/build.mjs`. Identidade: `shared/v1/portal.css`. Compatibilidade dos links antigos: `shared/v1/routes.js`. Faça alterações por PR, execute testes e selecione o commit aprovado no `modules.json` do publicador. Nenhuma alteração aqui aciona a produção automaticamente.
 
-As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas Temáticos tem página própria e um piloto local da rede de serviços, com Leaflet incluído no pacote, camadas, busca, lista, consultas e fontes. O Busca Saúde existente permanece no painel. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
+As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas Temáticos tem página própria com o piloto da rede de serviços e o tema local de queimadas, com Leaflet incluído no pacote, camadas, filtros temporais, consultas e fontes. O Busca Saúde existente permanece no painel. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
 
 ## Mapas Temáticos e QGIS
 
 Consulte [Do QGIS aos Mapas Temáticos](docs/mapas/FLUXO-QGIS.md) para preparar novos temas, exportar os dados públicos, configurar simbologia, registrar ausências e revisar a prévia. O catálogo está em `maps/data/catalogue.json`; cada tema tem sua pasta de camadas e metadados. Leaflet e vetores são locais, sem dependência npm adicional. Os fundos opcionais usam serviços externos gratuitos, com procedência e atribuição; a cartografia e os locais permanecem disponíveis se o fundo falhar. Custo adicional: zero.
 
 No celular, abra “Filtros e camadas” para pesquisar ou combinar referências. Os pedidos JSON têm prazo máximo de 15 segundos, compartilham operações em andamento e reutilizam leituras concluídas no mesmo visualizador. Falhas permitem nova tentativa; trocar temas remove seus controles e observadores, preservando o cache de dados públicos.
+
+O fluxo específico e as fontes do [piloto local de queimadas em Unaí](docs/mapas/QUEIMADAS-UNAI.md) também estão documentados.
 
 ```powershell
 npm run preview:mapas -- --panel=../painel --legacy=../painel/dist-ecossistema --port=4174

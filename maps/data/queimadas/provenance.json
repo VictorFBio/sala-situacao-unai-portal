@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-10-15T10:30:32-03:00",
+  "municipalityCode": "3170404",
+  "publicationCrs": "EPSG:4326",
+  "transformation": {
+    "tool": "QGIS / PyQGIS",
+    "operation": "recorte municipal, reprojeção e seleção de atributos públicos"
+  },
+  "counts": {
+    "focos": 688,
+    "areaQueimadaAQ1KM": 712,
+    "localidadesCenso2022": 26,
+    "servicos": 32
+  },
+  "periods": {
+    "focos": "2026-09",
+    "area-queimada": "2026-09"
+  },
+  "files": [
+    {
+      "path": "focos.geojson",
+      "sha256": "d1f18edc2ed56f0b3786955fb05941e07baa0e1c56c1086c567e240015cf3a06",
+      "bytes": 264932,
+      "features": 688
+    },
+    {
+      "path": "area-queimada.geojson",
+      "sha256": "4442c55438543273a68fed44f666aa56f37c252c4ca4236a2bdec5eb3de970c3",
+      "bytes": 233757,
+      "features": 712
+    },
+    {
+      "path": "localidades.geojson",
+      "sha256": "73ef889883b5ce1fc8a943609735e99ea711893f40f762be8be0c17575bb0422",
+      "bytes": 6204,
+      "features": 26
+    },
+    {
+      "path": "municipio.geojson",
+      "sha256": "176f570b98113da87330aafea909305f0ef888df8eb10c636e15dfd793a9a76a",
+      "bytes": 73061,
+      "features": 1
+    },
+    {
+      "path": "servicos.geojson",
+      "sha256": "643bf976a0fd59b29ee9d9d87af4379e2cd63b7b56ab659d01bbb3c374bcb23e",
+      "bytes": 13264,
+      "features": 32
+    },
+    {
+      "path": "comparacao-antes.jpg",
+      "sha256": "e6cf668593973596b801384393bc116f5b0d99360185dab8247816d14bd1fa47",
+      "bytes": 430123
+    },
+    {
+      "path": "comparacao-depois.jpg",
+      "sha256": "da2193f8b5426ba58feb8601119fb73e53f4bdd5dc7b91ac4449825acc91917a",
+      "bytes": 514982
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "a5e54bbe07b66c1f080fef55a57a415d068601ac96701388f54117a09896f297",
+      "bytes": 7133
+    }
+  ]
+}
