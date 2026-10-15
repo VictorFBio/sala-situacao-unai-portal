@@ -22,7 +22,14 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: 22
+      - name: Preparar GDAL para testes de dados geográficos
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gdal-bin
       - run: npm test
         working-directory: portal
         env:
           PANEL_SOURCE: ../painel
+          OGR_PATH: ogr2ogr
+          PROJ_DATA: /usr/share/proj
+          GDAL_DATA: /usr/share/gdal
