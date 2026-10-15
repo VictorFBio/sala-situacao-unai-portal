@@ -71,6 +71,18 @@ test('preparação das queimadas usa limite municipal IBGE original e registra f
   assert.match(metadata.contextSource.period, /09\/09\/2026/);
 });
 
+test('preparador QGIS grava JSON em LF antes de registrar hashes portáveis', async () => {
+  const script = await readFile(new URL('../scripts/prepare-queimadas.py', import.meta.url), 'utf8');
+  assert.match(script, /def write_text_lf\(path, contents\):[\s\S]*?path\.open\("w", encoding="utf-8", newline="\\n"\)/);
+  assert.doesNotMatch(script, /\.write_text\(/);
+});
+
+test('imagens de mapa ficam fora da normalização textual do Git', async () => {
+  const attributes = await readFile(new URL('../.gitattributes', import.meta.url), 'utf8');
+  assert.match(attributes, /^maps\/data\/\*\*\/\*\.jpg -text$/m);
+  assert.match(attributes, /^maps\/data\/\*\*\/\*\.jpeg -text$/m);
+});
+
 test('extratos municipais publicados têm períodos coerentes com a janela declarada', async () => {
   const theme = catalogue.themes.find(item => item.id === 'queimadas');
   assert.ok(theme);

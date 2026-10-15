@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "queimadas",
   "title": "Queimadas e focos de calor",
-  "preparedAt": "2026-10-15T11:11:53-03:00",
+  "preparedAt": "2026-10-15T11:19:39-03:00",
   "publicationCrs": "EPSG:4326",
   "source": {
     "label": "INPE Programa Queimadas · focos de calor do satélite de referência AQUA M-T",

@@ -129,12 +129,14 @@ def feature_json(geometry, properties):
     }
 
 
+def write_text_lf(path, contents):
+    with path.open("w", encoding="utf-8", newline="\n") as output:
+        output.write(contents)
+
+
 def write_geojson(filename, features):
     path = OUTPUT / filename
-    path.write_text(
-        json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False, separators=(",", ":")) + "\n",
-        encoding="utf-8",
-    )
+    write_text_lf(path, json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False, separators=(",", ":")) + "\n")
     return path
 
 
@@ -339,7 +341,7 @@ fire_theme = next(theme for theme in catalogue["themes"] if theme["id"] == "quei
 fire_theme["temporal"]["years"] = years
 fire_theme["temporal"]["partialYear"] = partial_year
 fire_theme["temporal"]["latestByLayer"] = available_latest
-catalogue_path.write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+write_text_lf(catalogue_path, json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n")
 
 report = {
     "preparedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -369,8 +371,7 @@ metadata["limitations"] = [
     f"A série {partial_year} está incompleta após {period_label(focus_latest)}. A ausência de registros em um mês ou na camada não comprova ausência de queimadas." if note.startswith("A série 2026 está incompleta") and partial_year else note
     for note in metadata["limitations"]
 ]
-(OUTPUT / "metadata.json").write_text(
-    json.dumps({
+write_text_lf(OUTPUT / "metadata.json", json.dumps({
         **metadata,
         "preparedAt": report["preparedAt"],
         "counts": {
@@ -379,9 +380,7 @@ metadata["limitations"] = [
             "localidadesCenso2022": len(localities),
             "servicosPublicos": working_counts["servicos"],
         },
-    }, ensure_ascii=False, indent=2) + "\n",
-    encoding="utf-8",
-)
+    }, ensure_ascii=False, indent=2) + "\n")
 proof_files = []
 feature_counts = {
     "focos.geojson": len(focos),
@@ -401,7 +400,7 @@ for filename in required_files:
     if filename in feature_counts:
         item["features"] = feature_counts[filename]
     proof_files.append(item)
-(OUTPUT / "provenance.json").write_text(json.dumps({
+write_text_lf(OUTPUT / "provenance.json", json.dumps({
     "schemaVersion": 1,
     "preparedAt": report["preparedAt"],
     "municipalityCode": "3170404",
@@ -418,6 +417,6 @@ for filename in required_files:
         },
     },
     "files": proof_files,
-}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-(SOURCE / "preparo-relatorio.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+}, ensure_ascii=False, indent=2) + "\n")
+write_text_lf(SOURCE / "preparo-relatorio.json", json.dumps(report, ensure_ascii=False, indent=2) + "\n")
 print(json.dumps(report, ensure_ascii=False, indent=2))

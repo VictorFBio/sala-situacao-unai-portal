@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "preparedAt": "2026-10-15T11:11:53-03:00",
+  "preparedAt": "2026-10-15T11:19:39-03:00",
   "municipalityCode": "3170404",
   "publicationCrs": "EPSG:4326",
   "transformation": {
@@ -28,26 +28,26 @@
   "files": [
     {
       "path": "focos.geojson",
-      "sha256": "d1f18edc2ed56f0b3786955fb05941e07baa0e1c56c1086c567e240015cf3a06",
-      "bytes": 264932,
+      "sha256": "5824c56be8d44dca0c443725c3167b7e789dcc9fe674308c03e0de1ce033dbec",
+      "bytes": 264931,
       "features": 688
     },
     {
       "path": "area-queimada.geojson",
-      "sha256": "73b5b5703acf9733e86a0df1a27353238328cb77ca8f081c27aa637992bc7546",
-      "bytes": 288522,
+      "sha256": "e8e2a56b13c8903a31bb533bc5c6d2e785760e39edc72b5cbc91550082ab4103",
+      "bytes": 288521,
       "features": 712
     },
     {
       "path": "localidades.geojson",
-      "sha256": "73ef889883b5ce1fc8a943609735e99ea711893f40f762be8be0c17575bb0422",
-      "bytes": 6204,
+      "sha256": "fb02f445f18e58876f2f1055cc451d75c9fb7ea73e67f52171b1a3c36765afa3",
+      "bytes": 6203,
       "features": 26
     },
     {
       "path": "municipio.geojson",
-      "sha256": "ca18ec7072c7a488c8cea0478afb5a2c90a6202e33b2a987f312984db04ef4c8",
-      "bytes": 332549,
+      "sha256": "82583ac4667abb0c72bda48b456fe1462f68e1762a616ed9e3a313585584885e",
+      "bytes": 332548,
       "features": 1
     },
     {
@@ -68,8 +68,8 @@
     },
     {
       "path": "metadata.json",
-      "sha256": "300eca64e9bb2ac06041b9a2de5c49fe4e811b97e63ed43946dc12dc028f2b52",
-      "bytes": 7764
+      "sha256": "a9e98654433cb784b0adcfdffb9c778f2b905ebbe2da9ae1098a312a8229036c",
+      "bytes": 7629
     }
   ]
 }
