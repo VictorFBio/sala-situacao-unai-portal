@@ -19,11 +19,25 @@ Regra visual: usar a paleta sóbria do painel (azul institucional, branco e cinz
 
 Páginas e catálogo: `scripts/build.mjs`. Identidade: `shared/v1/portal.css`. Compatibilidade dos links antigos: `shared/v1/routes.js`. Faça alterações por PR, execute testes e selecione o commit aprovado no `modules.json` do publicador. Nenhuma alteração aqui aciona a produção automaticamente.
 
-As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas encaminha para a consulta territorial existente. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
+As áreas Rede, Boletins e Análises aparecem como em preparação. Mapas Temáticos tem página própria com o piloto da rede de serviços e o tema local de queimadas, com Leaflet incluído no pacote, camadas, filtros temporais, consultas e fontes. O Busca Saúde existente permanece no painel. Fontes cadastradas e consultas presentes são estados distintos; presença de registros não é validação epidemiológica.
+
+## Mapas Temáticos e QGIS
+
+Consulte [Do QGIS aos Mapas Temáticos](docs/mapas/FLUXO-QGIS.md) para preparar novos temas, exportar os dados públicos, configurar simbologia, registrar ausências e revisar a prévia. O catálogo está em `maps/data/catalogue.json`; cada tema tem sua pasta de camadas e metadados. Leaflet e vetores são locais, sem dependência npm adicional. Os fundos opcionais usam serviços externos gratuitos, com procedência e atribuição; a cartografia e os locais permanecem disponíveis se o fundo falhar. Custo adicional: zero.
+
+No celular, abra “Filtros e camadas” para pesquisar ou combinar referências. Os pedidos JSON têm prazo máximo de 15 segundos, compartilham operações em andamento e reutilizam leituras concluídas no mesmo visualizador. Falhas permitem nova tentativa; trocar temas remove seus controles e observadores, preservando o cache de dados públicos.
+
+O fluxo específico e as fontes do [piloto local de queimadas em Unaí](docs/mapas/QUEIMADAS-UNAI.md) também estão documentados.
+
+```powershell
+npm run preview:mapas -- --panel=../painel --legacy=../painel/dist-ecossistema --port=4174
+```
+
+Abra o endereço local exibido no terminal. A saída fica em `.preview/`, fora da fonte e ignorada pelo Git. O preparo confere hashes do painel, links locais e os limites do preparador Cloudflare existente, sem enviar arquivos para a internet. O servidor atende apenas em `127.0.0.1`. Para testes no Windows, crie `.qa-temp/` e aponte `TEMP` e `TMP` para essa pasta, conforme o guia.
 
 ## Publicação e recuperação
 
-O publicador reúne este repositório e o painel. A homologação tem endereço separado, aviso visível e `noindex`. A ativação no domínio principal ocorrerá somente após aprovação da versão concreta e após a avaliação de 15/10/2026. Para recuperar uma versão, retorne a referência do portal no manifesto e gere novamente o pacote; consulte o procedimento central no repositório do painel.
+O publicador reúne este repositório e o painel. A homologação tem endereço separado, aviso visível e `noindex`. O piloto já foi ativado no domínio principal com autorização do titular. Atualizações devem passar por testes, homologação e autorização de publicação. Para recuperar uma versão, retorne a referência do portal no manifesto e gere novamente o pacote; consulte o procedimento central no repositório do painel.
 
 ## Reprodução municipal e direitos
 

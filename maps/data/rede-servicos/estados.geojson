@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "estados-utm",
+"features": [
+{ "type": "Feature", "properties": { "codigo": "31", "nome": "Minas Gerais", "uf": "MG", "label_x": null, "label_y": null }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -42.2666492, -21.7144732 ], [ -39.9147979, -15.9999934 ], [ -50.9623785, -19.4818957 ], [ -42.2666492, -21.7144732 ] ] ] } },
+{ "type": "Feature", "properties": { "codigo": "52", "nome": "Goiás", "uf": "GO", "label_x": 248784.99, "label_y": 8186359.77 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -47.2838683, -18.0583928 ], [ -46.1090484, -12.9204224 ], [ -50.3659843, -12.5455011 ], [ -47.2838683, -18.0583928 ] ] ] } },
+{ "type": "Feature", "properties": { "codigo": "53", "nome": "Distrito Federal", "uf": "DF", "label_x": 236014.56, "label_y": 8244720.29 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -47.3085041, -16.0499714 ], [ -47.3180116, -15.5891422 ], [ -48.200009, -15.5022783 ], [ -47.3085041, -16.0499714 ] ] ] } }
+]
+}

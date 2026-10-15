@@ -6,3 +6,5 @@ node_modules/
 dados/entrada/
 dados/processamento/
 dados/restritos/
+.preview/
+.qa-temp/

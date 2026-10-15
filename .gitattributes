@@ -1,0 +1,5 @@
+maps/data/**/*.json text eol=lf
+maps/data/**/*.geojson text eol=lf
+maps/data/**/*.jpg -text
+maps/data/**/*.jpeg -text
+maps/vendor/** -text

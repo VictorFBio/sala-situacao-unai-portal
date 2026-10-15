@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "id": "queimadas",
+  "title": "Queimadas e focos de calor",
+  "preparedAt": "2026-10-15T11:19:39-03:00",
+  "publicationCrs": "EPSG:4326",
+  "source": {
+    "label": "INPE Programa Queimadas · focos de calor do satélite de referência AQUA M-T",
+    "license": "Dados abertos para uso público; a página oficial consultada não informa uma licença padronizada.",
+    "period": "Focos: janeiro de 2020 a setembro de 2026; AQ1KM: janeiro de 2020 a setembro de 2026. 2026 é parcial.",
+    "links": [
+      {
+        "label": "INPE · Dados abertos de queimadas",
+        "href": "https://terrabrasilis.dpi.inpe.br/queimadas/portal/dados-abertos/"
+      },
+      {
+        "label": "INPE · serviço WFS",
+        "href": "https://terrabrasilis.dpi.inpe.br/queimadas/geoserver/ows"
+      },
+      {
+        "label": "INPE · arquivos mensais de focos no Brasil",
+        "href": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/"
+      },
+      {
+        "label": "INPE · produto AQ1KM Coleção 2",
+        "href": "https://terrabrasilis.dpi.inpe.br/queimadas/aq1km/"
+      },
+      {
+        "label": "INPE · arquivos mensais AQ1KM Coleção 2",
+        "href": "https://dataserver-coids.inpe.br/queimadas/queimadas/area_queimada/colecao2/shp/"
+      }
+    ],
+    "filters": [
+      "Recorte espacial municipal de Unaí (código IBGE 3170404), conferido com o limite municipal IBGE 2025.",
+      "Focos de 2020–2025: WFS anual para AQUA_M-T; 2026: CSV mensal filtrado por município 3170404 e AQUA_M-T, disponível até setembro de 2026.",
+      "Área queimada: arquivos mensais AQ1KM Coleção 2 de janeiro de 2020 até setembro de 2026, recortados ao limite municipal."
+    ],
+    "assumptions": [
+      "As ocorrências são detecções orbitais. Repetições de um mesmo evento não foram deduplicadas nem interpretadas como incêndios distintos.",
+      "A série mensal de 2026 é parcial e foi harmonizada para o mesmo satélite de referência, sem inferir dados para meses ausentes."
+    ]
+  },
+  "contextSource": {
+    "label": "IBGE · malha municipal e localidades do Censo 2022; pontos de serviços da Sala de Situação",
+    "license": "A licença padronizada não foi confirmada nos metadados oficiais consultados. Para a malha IBGE 2025, consulte a nota técnica e legal de uso; os serviços mantêm os termos e créditos da camada original.",
+    "period": "Limite municipal IBGE 2025; localidades IBGE 2022; endereços dos serviços consultados em 09/09/2026.",
+    "links": [
+      {
+        "label": "IBGE · malha municipal 2025 de Minas Gerais (arquivo original)",
+        "href": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2025/UFs/MG/MG_Municipios_2025.zip"
+      },
+      {
+        "label": "IBGE · malhas territoriais",
+        "href": "https://www.ibge.gov.br/geociencias/todos-os-produtos-geociencias/15774-malhas.html"
+      },
+      {
+        "label": "IBGE · nota técnica e legal de uso da malha 2025",
+        "href": "https://biblioteca.ibge.gov.br/index.php/biblioteca-catalogo?view=detalhes&id=2102268"
+      },
+      {
+        "label": "IBGE · localidades do Brasil 2022",
+        "href": "https://www.ibge.gov.br/geociencias/organizacao-do-territorio/estrutura-territorial/27385-localidades.html"
+      },
+      {
+        "label": "IBGE · arquivos de localidades 2022",
+        "href": "https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/localidades/Localidades_do_Brasil/2022/"
+      },
+      {
+        "label": "Prefeitura de Unaí · endereços dos serviços (consulta em 09/09/2026)",
+        "href": "https://www.prefeituraunai.mg.gov.br/pmu2/index.php/secretarias/governo/a-secretaria-governo/73-enderecos-e-telefones.html"
+      }
+    ],
+    "boundaryArchiveSha256": "15313BAF3A05D43F03C50DACB605E2B07F6E3CD961AA1594C8E4AEFBD6BAACD7",
+    "boundaryDownloadedAt": "2026-10-15",
+    "filters": [
+      "Unaí (MG); localidades selecionadas pelo código municipal 3170404 e conferidas por interseção com a malha municipal."
+    ],
+    "assumptions": [
+      "As localidades são referências do Censo 2022, não um cadastro completo e atualizado de comunidades.",
+      "Os 32 serviços reutilizam pontos já publicados pela Sala de Situação. A posição é aproximada e mantém as ressalvas da camada de origem."
+    ]
+  },
+  "imagery": {
+    "label": "INPE / Brazil Data Cube · CBERS-4A WPM",
+    "period": "Par de cenas de 3 e 29 de setembro de 2026, recortadas para a mesma extensão na área piloto.",
+    "links": [
+      {
+        "label": "Cena anterior · 03/09/2026 · STAC INPE/BDC",
+        "href": "https://data.inpe.br/bdc/stac/v1/collections/CB4A-WPM-PCA-FUSED-1/items/CBERS4A_WPM_PCA_RGB321_20260903_204_133"
+      },
+      {
+        "label": "Cena posterior · 29/09/2026 · STAC INPE/BDC",
+        "href": "https://data.inpe.br/bdc/stac/v1/collections/CB4A-WPM-PCA-FUSED-1/items/CBERS4A_WPM_PCA_RGB321_20260929_205_133"
+      }
+    ],
+    "license": "CC-BY-4.0",
+    "resolution": "CBERS-4A WPM, resolução nominal de 2 m; cada imagem local do comparador tem 1400 × 1400 pixels e a mesma extensão.",
+    "cloudCover": "O metadado eo:cloud_cover está nulo nas duas cenas; a cobertura de nuvens não foi quantificada.",
+    "limitations": [
+      "A comparação é uma inspeção visual e não confirma cicatriz de fogo nem relação causal com detecções de focos."
+    ]
+  },
+  "counts": {
+    "focosPorAno": {
+      "2020": 110,
+      "2021": 147,
+      "2022": 89,
+      "2023": 87,
+      "2024": 97,
+      "2025": 120,
+      "2026": 38
+    },
+    "areaQueimadaPorAno": {
+      "2020": 110,
+      "2021": 146,
+      "2022": 98,
+      "2023": 112,
+      "2024": 77,
+      "2025": 133,
+      "2026": 36
+    },
+    "localidadesCenso2022": 26,
+    "servicosPublicos": 32
+  },
+  "unit": "Foco de calor = detecção orbital; AQ1KM = feição mensal do produto de área queimada. Os totais são contagens de registros publicados, não de incêndios, cicatrizes únicas nem área queimada em hectares.",
+  "method": "Preparação local em QGIS: seleção de fontes, recorte espacial pela malha municipal, transformação para WGS 84 / EPSG:4326, normalização dos atributos públicos e exportação GeoJSON. Fontes brutas e GeoPackage de trabalho permanecem locais; o site recebe apenas os extratos municipais, a cartografia de contexto e duas imagens recortadas.",
+  "limitations": [
+    "Focos de calor são detecções por satélite, não uma contagem direta de incêndios. Um evento pode produzir detecções repetidas e cada ponto depende das limitações do sensor e do horário de passagem.",
+    "AQ1KM é um produto provisório e de resolução aproximada de 1 km. As feições não representam limites precisos de cicatrizes; uma mesma célula pode aparecer em registros ao longo do período. Não somar o número de feições como área ou número de incêndios.",
+    "A série 2026 está incompleta após setembro de 2026. A ausência de registros em um mês ou na camada não comprova ausência de queimadas.",
+    "Localidades IBGE 2022 são referências territoriais, não cadastro atual de toda a população ou de todas as comunidades.",
+    "Os pontos de serviços são aproximados, seguem a data e as limitações da camada já existente e não comprovam funcionamento, cobertura ou resposta a eventos.",
+    "No par CBERS-4A, a cobertura de nuvens não está informada nos metadados STAC. Diferenças visuais entre datas não confirmam ocorrência ou causa de uma cicatriz de queimada."
+  ]
+}

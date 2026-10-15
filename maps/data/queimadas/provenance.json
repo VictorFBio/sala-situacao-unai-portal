@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-10-15T11:19:39-03:00",
+  "municipalityCode": "3170404",
+  "publicationCrs": "EPSG:4326",
+  "transformation": {
+    "tool": "QGIS / PyQGIS",
+    "operation": "recorte municipal, reprojeção e seleção de atributos públicos"
+  },
+  "counts": {
+    "focos": 688,
+    "areaQueimadaAQ1KM": 712,
+    "localidadesCenso2022": 26,
+    "servicos": 32
+  },
+  "periods": {
+    "focos": "2026-09",
+    "area-queimada": "2026-09"
+  },
+  "inputs": {
+    "municipalBoundary": {
+      "archive": "MG_Municipios_2025.zip",
+      "url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2025/UFs/MG/MG_Municipios_2025.zip",
+      "sha256": "15313BAF3A05D43F03C50DACB605E2B07F6E3CD961AA1594C8E4AEFBD6BAACD7",
+      "downloadedAt": "2026-10-15"
+    }
+  },
+  "files": [
+    {
+      "path": "focos.geojson",
+      "sha256": "5824c56be8d44dca0c443725c3167b7e789dcc9fe674308c03e0de1ce033dbec",
+      "bytes": 264931,
+      "features": 688
+    },
+    {
+      "path": "area-queimada.geojson",
+      "sha256": "e8e2a56b13c8903a31bb533bc5c6d2e785760e39edc72b5cbc91550082ab4103",
+      "bytes": 288521,
+      "features": 712
+    },
+    {
+      "path": "localidades.geojson",
+      "sha256": "fb02f445f18e58876f2f1055cc451d75c9fb7ea73e67f52171b1a3c36765afa3",
+      "bytes": 6203,
+      "features": 26
+    },
+    {
+      "path": "municipio.geojson",
+      "sha256": "82583ac4667abb0c72bda48b456fe1462f68e1762a616ed9e3a313585584885e",
+      "bytes": 332548,
+      "features": 1
+    },
+    {
+      "path": "servicos.geojson",
+      "sha256": "643bf976a0fd59b29ee9d9d87af4379e2cd63b7b56ab659d01bbb3c374bcb23e",
+      "bytes": 13264,
+      "features": 32
+    },
+    {
+      "path": "comparacao-antes.jpg",
+      "sha256": "e6cf668593973596b801384393bc116f5b0d99360185dab8247816d14bd1fa47",
+      "bytes": 430123
+    },
+    {
+      "path": "comparacao-depois.jpg",
+      "sha256": "da2193f8b5426ba58feb8601119fb73e53f4bdd5dc7b91ac4449825acc91917a",
+      "bytes": 514982
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "a9e98654433cb784b0adcfdffb9c778f2b905ebbe2da9ae1098a312a8229036c",
+      "bytes": 7629
+    }
+  ]
+}

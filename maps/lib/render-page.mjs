@@ -1,0 +1,73 @@
+import { validateCatalogue } from './theme-model.mjs';
+
+export const escapeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const safeUrl = value => { try { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) ? escapeText(url.href) : ''; } catch { return ''; } };
+const absent = value => value === null || value === undefined || value === '' ? 'Não informado na fonte' : String(value);
+
+export function symbolSvg(style = {}) {
+  const color = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(style.color || '') ? style.color : '#08588e';
+  const shapes = { circle: '<circle cx="10" cy="10" r="7"/>', square: '<rect x="3" y="3" width="14" height="14" rx="1"/>', cross: '<path d="M7 2H13V7H18V13H13V18H7V13H2V7H7Z"/>', diamond: '<path d="M10 1L19 10L10 19L1 10Z"/>', triangle: '<path d="M10 2L19 18H1Z"/>' };
+  return `<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" fill="${color}" stroke="white" stroke-width="1.5">${shapes[style.symbol] || shapes.circle}</svg>`;
+}
+
+export function mapAttribution(metadata = {}) {
+  const imageryLabel = metadata.imagery?.label ? `${metadata.imagery.label}${metadata.imagery.license ? ` · licença ${metadata.imagery.license}` : ''}` : null;
+  const sources = [...new Set([metadata.source?.label, metadata.contextSource?.label, imageryLabel].filter(Boolean))];
+  return 'Fontes: ' + escapeText(sources.join(' · ') || 'consulte a procedência do tema');
+}
+
+export function renderLocalList(features, theme, enabled = false, mappedIds = null) {
+  if (!features.length) return '<li class="empty-result">Nenhum local encontrado com estes filtros.</li>';
+  return [...features].sort((a, b) => String(a.properties.nome).localeCompare(String(b.properties.nome), 'pt-BR')).map(feature => {
+    const props = feature.properties;
+    const layer = theme.layers.find(item => item.kind === 'points' && item.group === props.grupo);
+    const fields = layer?.popupFields || [];
+    const unavailable = enabled && mappedIds && !mappedIds.has(String(props.codigo));
+    return `<li class="local-item" data-local-id="${escapeText(props.codigo)}"><div class="local-top">${symbolSvg(layer?.style)}<div><button type="button" data-select-local="${escapeText(props.codigo)}" ${enabled && !unavailable ? '' : 'disabled'}>${escapeText(absent(props.nome))}</button><p>${escapeText(props.grupo)}</p></div></div><p class="local-address">${escapeText(absent(props.endereco))}</p>${unavailable ? '<p class="local-unavailable">Representação no mapa indisponível. Os dados deste local continuam acessíveis.</p>' : ''}<details><summary>Dados deste local</summary><dl>${fields.map(field => `<dt>${escapeText(field.label)}</dt><dd>${escapeText(absent(props[field.field]))}</dd>`).join('')}</dl></details></li>`;
+  }).join('');
+}
+
+function metadataMarkup(metadata = {}) {
+  const source = metadata.source || {};
+  const context = metadata.contextSource || {};
+  const imagery = metadata.imagery || {};
+  const links = [...(source.links || []), ...(context.links || []), ...(imagery.links || [])];
+  const uniqueLinks = [...new Map(links.filter(link => safeUrl(link.href)).map(link => [link.href, link])).values()];
+  const usageTerms = [['Fonte principal', source.license], ['Cartografia e contexto', context.license]].filter(([, note]) => note);
+  const usageMarkup = usageTerms.map(([label, note]) => `<div><strong>${escapeText(label)}:</strong> ${escapeText(note)}</div>`).join('');
+  return `<details class="maps-provenance"><summary>Procedência e interpretação</summary><div class="maps-provenance-content"><div><dl><dt>Fonte principal</dt><dd>${escapeText(absent(source.label))}</dd><dt>Período de referência</dt><dd>${escapeText(absent(source.period))}</dd><dt>Cartografia</dt><dd>${escapeText(absent(context.period))}</dd>${imagery.label ? `<dt>Imagens de satélite</dt><dd>${escapeText(imagery.label)} · ${escapeText(absent(imagery.period))}${imagery.resolution ? `<br>${escapeText(imagery.resolution)}` : ''}${imagery.license ? `<br>Licença: ${escapeText(imagery.license)}` : ''}${imagery.cloudCover ? `<br>${escapeText(imagery.cloudCover)}` : ''}</dd>` : ''}<dt>O que está contado</dt><dd>${escapeText(absent(metadata.unit))}</dd></dl>${usageMarkup ? `<h3>Licenças e condições de uso</h3><div class="maps-usage-terms">${usageMarkup}</div>` : ''}</div><div><h3>Limitações da fonte</h3><ul>${(metadata.limitations || []).map(note => `<li>${escapeText(note)}</li>`).join('')}</ul><div class="maps-source-links">${uniqueLinks.map(link => `<a href="${safeUrl(link.href)}" target="_blank" rel="noopener noreferrer">${escapeText(link.label || 'Consultar fonte')} ↗</a>`).join('')}</div></div></div></details>`;
+}
+
+export function renderThemeContent({ theme, bundle = {}, mapsBase }) {
+  const features = bundle.points?.features || [];
+  const groups = theme.layers.filter(layer => layer.kind === 'points');
+  const contexts = theme.layers.filter(layer => layer.kind === 'context');
+  const hasPoints = groups.length > 0;
+  const legend = groups.map(layer => `<span>${symbolSvg(layer.style)}${escapeText(layer.label)}</span>`).join('');
+  const thematicLegend = [
+    ...theme.layers.filter(layer => layer.style?.field).map(layer => `<div><strong>${escapeText(layer.label)}</strong>${[...layer.style.classes, layer.style.missing].map(entry => `<span><i style="background:${entry.color}"></i>${escapeText(entry.label)}</span>`).join('')}</div>`),
+    ...theme.layers.filter(layer => layer.legendLabel).map(layer => `<span>${layer.style?.symbol ? symbolSvg(layer.style) : layer.style?.legendSymbol === 'line' ? `<i class="map-legend-line" style="border-color:${layer.style.color || '#08588e'}"></i>` : `<i style="background:${layer.style.color || layer.style.fillColor || '#08588e'}"></i>`}${escapeText(layer.legendLabel)}</span>`)
+  ].join('');
+  const temporal = theme.temporal;
+  const comparison = theme.comparison;
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const monthLabel = value => `${monthNames[Number(value.slice(5, 7)) - 1]}/${value.slice(0, 4)}`;
+  const dateLabel = value => `${value.slice(8, 10)}/${value.slice(5, 7)}/${value.slice(0, 4)}`;
+  const periodControls = temporal ? `<div class="map-period-controls"><label for="map-year">Ano de referência</label><select id="map-year" data-map-year disabled>${temporal.years.map(year => `<option value="${year}" ${year === temporal.defaultYear ? 'selected' : ''}>${year}${year === temporal.partialYear ? ' · parcial' : ''}</option>`).join('')}</select><label for="map-month">Mês</label><select id="map-month" data-map-month disabled><option value="all" ${temporal.defaultMonth === 'all' ? 'selected' : ''}>Ano todo</option>${monthNames.map((month, index) => `<option value="${String(index + 1).padStart(2, '0')}" ${temporal.defaultMonth === String(index + 1).padStart(2, '0') ? 'selected' : ''}>${month}</option>`).join('')}</select><p data-period-status role="status">${temporal.layerIds.map(id => `${escapeText(theme.layers.find(layer => layer.id === id)?.label || id)} até ${monthLabel(temporal.latestByLayer[id])}`).join(' · ')}.</p></div>` : '';
+  const comparisonControls = comparison ? `<div class="map-comparison-controls"><label class="map-comparison-toggle"><input type="checkbox" data-comparison-toggle><span>Comparar imagens de satélite</span></label><label for="map-comparison-slider">Deslize para revelar a cena anterior</label><input id="map-comparison-slider" type="range" min="0" max="100" value="50" data-comparison-slider aria-valuetext="Metade da cena anterior e metade da cena posterior" disabled><p data-comparison-status role="status">${dateLabel(comparison.beforeDate)} · ${dateLabel(comparison.afterDate)}${comparison.eventDate ? ` · detecção de referência: ${dateLabel(comparison.eventDate)}` : ''}</p></div>` : '';
+  const canvasLabel = `Mapa interativo de Unaí${theme.title ? ` · ${theme.title}` : ''}`;
+  const contextChoices = contexts.map(layer => `<label class="map-context-choice">${layer.style?.symbol ? symbolSvg(layer.style) : ''}<input type="checkbox" data-map-layer="${layer.id}" ${layer.visible ? 'checked' : ''} disabled><span>${escapeText(layer.label)}</span>${temporal?.layerIds.includes(layer.id) ? `<small data-temporal-count="${layer.id}">0</small>` : ''}</label>`).join('');
+  return `<div class="map-intro"><div><h2>${escapeText(theme.title)}</h2><p>${escapeText(theme.description)}</p></div></div>
+<div class="maps-workspace"><aside class="maps-controls" aria-label="Filtros e camadas do mapa"><button type="button" data-map-filters aria-expanded="true" aria-controls="map-filter-panel">Filtros e camadas</button><div id="map-filter-panel" data-map-filter-panel>${periodControls}${hasPoints ? '<label for="map-search">Buscar local ou bairro</label>' : ''}<input id="map-search" type="search" placeholder="Ex.: Alvorada, CAIC" data-map-search disabled ${hasPoints ? '' : 'hidden'}><fieldset ${hasPoints ? '' : 'hidden'}><legend>${hasPoints ? "Rede e serviços" : ""}</legend>${groups.map(layer => `<label class="map-layer-choice">${symbolSvg(layer.style)}<input type="checkbox" data-map-layer="${layer.id}" ${layer.visible ? 'checked' : ''} disabled><span>${escapeText(layer.label)}</span><small>${features.filter(feature => feature.properties.grupo === layer.group).length}</small></label>`).join('')}</fieldset><details class="context-controls" open><summary>Camadas do tema e referências</summary><fieldset><legend class="visually-hidden">Camadas temáticas e territoriais</legend>${contextChoices}</fieldset></details></div></aside><div class="map-main">${theme.basemapsPath ? '<div class="map-base-toolbar" role="group" aria-label="Fundo do mapa"><span>Fundo do mapa</span><button type="button" data-map-base="satellite" aria-pressed="false" disabled>Satélite · 2 m</button><button type="button" data-map-base="streets" aria-pressed="false" disabled>Ruas</button><button type="button" data-map-base="plain" aria-pressed="true" disabled>Cartografia</button><button type="button" data-map-expand aria-pressed="false">Ampliar mapa</button></div>' : ''}<div class="map-toolbar"><div class="map-views" role="group" aria-label="Enquadramento do mapa"><button type="button" data-map-view="municipio" aria-pressed="true" disabled>${theme.layers.some(layer => layer.id === "municipio") ? "Município" : "Enquadrar camadas"}</button><button type="button" data-map-view="urbano" aria-pressed="false" disabled ${hasPoints || theme.layers.some(layer => layer.id === "urbano") ? '' : 'hidden'}>Sede urbana</button></div><span data-map-count aria-live="polite">${hasPoints ? features.length + " locais na base" : "Camadas territoriais"}</span></div><p class="map-base-status" data-base-status role="status" ${theme.basemapsPath ? "" : "hidden"}>Preparando o fundo. Os pontos e polígonos são camadas independentes.</p><div class="map-canvas" data-map-canvas aria-label="${escapeText(canvasLabel)}" tabindex="0"></div>${comparisonControls}<p class="map-status" data-map-status role="status">Carregando o mapa.</p><div class="map-legend" aria-label="Legenda do mapa">${legend}${thematicLegend}</div></div></div>
+<noscript><p class="notice">O mapa interativo precisa de JavaScript. Consulte todos os locais, endereços e observações na lista abaixo.</p></noscript>
+<div class="maps-results ${hasPoints ? '' : 'maps-results-territory'}"><section class="map-results-list" ${hasPoints ? '' : 'hidden'}><div class="results-heading"><h2>${hasPoints ? "Locais encontrados" : ""}</h2><span data-list-count>${features.length} locais cadastrados</span></div><p class="small">A lista acompanha os filtros. Abra os dados de um local ou selecione seu nome para vê-lo no mapa.</p><ul class="local-list" data-map-list>${hasPoints ? renderLocalList(features, theme) : ''}</ul></section><section class="map-selection" aria-labelledby="selected-heading"><p class="eyebrow">${hasPoints ? "Consulta do local" : "Consulta da feição"}</p><h2 id="selected-heading">${hasPoints ? "Local selecionado" : "Consulta territorial"}</h2><div data-map-selection><p>${hasPoints ? "Selecione um símbolo no mapa ou o nome de um local na lista para consultar seus dados." : "Selecione uma feição no mapa para consultar seus atributos, quando disponíveis."}</p></div></section></div>
+${metadataMarkup(bundle.metadata)}`;
+}
+
+export function renderMapsPage({ catalogue, basePath, themeBundles = {} }) {
+  validateCatalogue(catalogue);
+  const mapsBase = `${basePath}mapas-de-saude/`;
+  const first = catalogue.themes[0];
+  const fallbacks = JSON.stringify(themeBundles).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+  return `<div class="wrap page-heading"><p class="eyebrow">Saúde pública e território</p><h1>Mapas Temáticos</h1></div><div class="wrap maps-page" data-maps-root><section class="maps-catalogue" aria-label="Catálogo de mapas"><div><label for="map-theme">Escolha um mapa</label><select id="map-theme" data-map-theme>${catalogue.themes.map(theme => `<option value="${theme.id}">${escapeText(theme.title)}</option>`).join('')}</select></div></section><div data-theme-content>${renderThemeContent({ theme: first, bundle: themeBundles[first.id], mapsBase })}</div><script type="application/json" data-map-fallbacks>${fallbacks}</script><p class="maps-panel-link">O Busca Saúde também permanece disponível no <a href="${basePath}painel-de-monitoramento/#/mapa">Painel de Monitoramento</a>.</p></div>`;
+}
