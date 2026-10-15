@@ -11,7 +11,7 @@ O catálogo atual de **Mapas Temáticos** tem uma opção “Queimadas e focos d
 - **Contexto territorial:** limite municipal IBGE 2025, 26 localidades do Censo 2022 e 32 pontos de serviços públicos já usados pela Sala. Localidades são referência censitária; os pontos de serviço mantêm as ressalvas de posição aproximada da camada original.
 - **Imagem piloto antes/depois:** duas cenas CBERS-4A WPM do INPE/BDC, 03 e 29/09/2026, recortadas para a mesma extensão e dimensão. O intervalo contém detecções de referência em 10/09. A comparação serve para inspeção visual; não confirma cicatriz nem causa. O campo de cobertura de nuvens não foi informado para as cenas. Crédito e licença CC BY 4.0 ficam junto aos metadados.
 
-O seletor combina ano e mês. 2026 aparece como parcial. Focos, AQ1KM, localidades, serviços e limite municipal podem ser ligados ou desligados. Quando um filtro não retorna feições, a interface informa a ausência no recorte e não a interpreta como ausência de queimadas. O seletor “Área piloto” enquadra o par de imagens; o controle deslizante revela a cena anterior sobre a posterior.
+O seletor combina ano e mês. 2026 aparece como parcial. Focos, AQ1KM, localidades, serviços e limite municipal podem ser ligados ou desligados. Quando um filtro não retorna feições, a interface informa a ausência no recorte e não a interpreta como ausência de queimadas. Ao ativar a comparação, o mapa enquadra as imagens; o controle deslizante revela a cena anterior sobre a posterior.
 
 Os fundos de ruas do OpenStreetMap e de satélite CBERS permanecem referências online já integradas ao visualizador. A aplicação carrega somente os blocos visíveis e exibe atribuição. Não fazer download em massa de blocos OSM.
 

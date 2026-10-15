@@ -104,8 +104,10 @@ test('comparação de imagens exige arquivos locais e datas e controles aparecem
   const html = renderer.renderThemeContent({ theme, bundle: { metadata }, mapsBase: '/mapas-de-saude/' });
   assert.match(html, /data-comparison-toggle/);
   assert.match(html, /data-comparison-slider/);
-  assert.match(html, /data-map-view="piloto"/);
-  assert.match(html, /comparacao-antes\.jpg/);
+  assert.doesNotMatch(html, /data-map-view="piloto"|>Área piloto<\/button>/);
+  assert.match(html, /03\/09\/2026/);
+  assert.match(html, /29\/09\/2026/);
+  assert.doesNotMatch(html, /<a[^>]+comparacao-(?:antes|depois)\.jpg/i);
   assert.match(html, /CC-BY-4\.0/);
   assert.match(html, /Licenças e condições de uso/);
   assert.match(html, /licença padronizada não foi confirmada/i);

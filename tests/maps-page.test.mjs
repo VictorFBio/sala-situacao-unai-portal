@@ -9,7 +9,7 @@ import { buildPortal } from '../scripts/build.mjs';
 const renderer = await import('../maps/lib/render-page.mjs').catch(() => ({}));
 const panelDir = path.resolve(process.env.PANEL_SOURCE || '../painel');
 
-test('página própria inclui camadas locais, lista acessível, metadados e downloads em diferentes bases', async () => {
+test('página própria mantém metadados recolhidos e remove controles e avisos redundantes', async () => {
   for (const basePath of ['/', '/homologacao/']) {
     const outputDir = await mkdtemp(path.join(os.tmpdir(), 'unai-maps-page-'));
     try {
@@ -23,10 +23,13 @@ test('página própria inclui camadas locais, lista acessível, metadados e down
       assert.match(html, /geocodificadas/);
       assert.match(html, /noscript/);
       assert.match(html, /data-local-id="A01"/);
-      assert.match(html, /download/);
+      assert.match(html, /<details class="maps-provenance"><summary>Procedência e interpretação<\/summary>/);
+      assert.match(html, /Limitações da fonte/);
+      assert.match(html, /Fonte principal/);
+      assert.doesNotMatch(html, /Baixar camadas e metadados|Novos temas serão incluídos após revisão das fontes|mapas disponíveis|Piloto para revisão|data-map-view="piloto"|\sdownload(?:\s|=|>)/i);
       assert.ok(html.includes(`${basePath}mapas-de-saude/vendor/leaflet/leaflet.js`));
       assert.ok(html.includes(`${basePath}mapas-de-saude/web/viewer.js`));
-      assert.ok(html.includes(`${basePath}mapas-de-saude/data/rede-servicos/locais.json`));
+      assert.match(html, /data-map-fallbacks/);
       const resources = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(match => match[1]);
       assert.ok(!resources.some(url => /unpkg|jsdelivr|tile\.openstreetmap|mapbox/i.test(url)));
       for (const file of ['web/viewer.js', 'web/maps.css', 'lib/theme-model.js', 'data/catalogue.json', 'data/rede-servicos/locais.json', 'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/leaflet/license.json', 'vendor/leaflet/version.json']) await access(path.join(outputDir, 'mapas-de-saude', file));

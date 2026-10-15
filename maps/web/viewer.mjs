@@ -271,8 +271,7 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         const urbanPoints = allFeatures.filter(feature => feature.properties.rural === false);
         const mainUrban = urbanExtent(datasets.get('urbano'));
         const urbanBounds = mainUrban ? L.latLngBounds([[mainUrban[1],mainUrban[0]],[mainUrban[3],mainUrban[2]]]).pad(0.1) : urbanPoints.length ? L.latLngBounds(urbanPoints.map(feature => [feature.geometry.coordinates[1], feature.geometry.coordinates[0]])).pad(0.15) : contexts.get('urbano')?.getBounds();
-        const comparisonBounds = theme.comparison ? L.latLngBounds([[theme.comparison.bounds[1], theme.comparison.bounds[0]], [theme.comparison.bounds[3], theme.comparison.bounds[2]]]).pad(0.12) : null;
-        const bounds = button.dataset.mapView === 'piloto' && comparisonBounds?.isValid() ? comparisonBounds : button.dataset.mapView === 'urbano' && urbanBounds?.isValid() ? urbanBounds : extent;
+        const bounds = button.dataset.mapView === 'urbano' && urbanBounds?.isValid() ? urbanBounds : extent;
         if (bounds?.isValid()) map.fitBounds(bounds, { padding: [25, 25], animate: false });
         for (const view of root.querySelectorAll('[data-map-view]')) view.setAttribute('aria-pressed', String(view === button));
       }, { signal: themeSignal });
@@ -285,6 +284,7 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
       const bounds = [[theme.comparison.bounds[1], theme.comparison.bounds[0]], [theme.comparison.bounds[3], theme.comparison.bounds[2]]];
       const beforeImage = L.imageOverlay(mapsBase + theme.comparison.beforePath, bounds, { pane: 'comparisonBefore', interactive: false, alt: `Imagem de satélite de ${theme.comparison.beforeDate}` });
       const afterImage = L.imageOverlay(mapsBase + theme.comparison.afterPath, bounds, { pane: 'comparisonAfter', interactive: false, alt: `Imagem de satélite de ${theme.comparison.afterDate}` });
+      const comparisonBounds = L.latLngBounds(bounds).pad(0.12);
       const toggle = root.querySelector('[data-comparison-toggle]');
       const slider = root.querySelector('[data-comparison-slider]');
       const note = root.querySelector('[data-comparison-status]');
@@ -294,8 +294,13 @@ export async function initMapsViewer({ root, catalogue, basePath = '/' }) {
         slider.setAttribute('aria-valuetext', `${value}% da cena anterior e ${100 - value}% da cena posterior`);
       };
       toggle.addEventListener('change', () => {
-        if (toggle.checked) { beforeImage.addTo(map); afterImage.addTo(map); updateSplit(); note.textContent = `Comparação ativa: cena anterior de ${theme.comparison.beforeDate} e cena posterior de ${theme.comparison.afterDate}. O par facilita a inspeção visual; não confirma cicatriz de fogo.`; }
-        else { map.removeLayer(beforeImage); map.removeLayer(afterImage); note.textContent = 'Comparação desligada. Use “Área piloto” para enquadrar o local das imagens.'; }
+        if (toggle.checked) {
+          beforeImage.addTo(map); afterImage.addTo(map); updateSplit();
+          if (comparisonBounds.isValid()) map.fitBounds(comparisonBounds, { padding: [25, 25], animate: false });
+          for (const view of root.querySelectorAll('[data-map-view]')) view.setAttribute('aria-pressed', 'false');
+          note.textContent = `Comparação ativa · ${theme.comparison.beforeDate} e ${theme.comparison.afterDate}.`;
+        }
+        else { map.removeLayer(beforeImage); map.removeLayer(afterImage); note.textContent = 'Comparação desligada.'; }
         slider.disabled = !toggle.checked;
       }, { signal: controller.signal });
       slider.addEventListener('input', updateSplit, { signal: controller.signal });

@@ -22,7 +22,8 @@ test('pacote de mapas respeita o publicador existente e preserva os dados GeoJSO
     }
     const pointsPath = catalogue.themes[0].layers.find(layer => layer.kind === 'points').path;
     const html = await readFile(path.join(maps, 'index.html'), 'utf8');
-    assert.match(html, /locais\.json" download>Locais mapeados · GeoJSON/);
+    assert.match(html, /<details class="maps-provenance"><summary>Procedência e interpretação<\/summary>/);
+    assert.doesNotMatch(html, /<a[^>]+\sdownload(?:\s|=|>)/i);
     const actual = await readFile(path.join(maps, pointsPath));
     assert.deepEqual(actual, await readFile(new URL('../maps/data/rede-servicos/locais.geojson', import.meta.url)));
     await access(path.join(maps, 'web/viewer.js'));
