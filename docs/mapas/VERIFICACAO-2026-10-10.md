@@ -1,6 +1,6 @@
 # Verificação local dos Mapas Temáticos
 
-Versão desenvolvida em `expansao/mapas-piloto`, branch `codex/mapas-tematicos`, a partir do portal `1daa8b10b94b56bd5d915358dac77ad1f70f47ed`. A execução foi aprovada para este chat e para teste local. Nenhum pacote foi enviado para hospedagem externa.
+Verificação local realizada em 10/10/2026 durante a preparação dos Mapas Temáticos. Os resultados abaixo documentam as conferências daquela etapa e não substituem a validação de atualizações posteriores. Nenhum pacote foi enviado à hospedagem externa naquela etapa.
 
 ## Resultado conferido
 
