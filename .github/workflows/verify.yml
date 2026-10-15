@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: VictorFBio/sala-situacao-unai-v2
-          ref: 109d7d5bb90a7b71f4313d341620b57f39b09d37
+          ref: 1f1a6786f36593c0351db83981df3dd8ada4bde0
           path: painel
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
